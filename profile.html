@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>โปรไฟล์ของฉัน - 3D Tech</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#2563EB', primaryHover: '#1D4ED8' },
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html, body { margin: 0; padding: 0; min-height: 100vh; font-family: 'Prompt', sans-serif; background-color: #F8FAFC; color: #334155; overflow-x: hidden; top: 0px !important; }
+        .store-header { background: white; padding: 1.5vh 5%; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .logo-area { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #1E293B; }
+        .logo-box { background: #2563EB; color: white; padding: 8px; border-radius: 8px; display: flex; }
+        .logo-area h1 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; font-weight: 700; }
+
+        .header-icons { display: flex; align-items: center; gap: 15px; }
+        .user-display { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #2563EB; background: #EFF6FF; padding: 6px 15px; border-radius: 50px; border: 1px solid #DBEAFE; }
+
+        .lang-btn {
+            display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px;
+            background: #ffffff; border: 1px solid #e2e8f0; color: #475569; font-weight: 700; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .lang-btn:hover { background: #eff6ff; border-color: #3b82f6; color: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
+        
+        .profile-layout { display: flex; flex-wrap: wrap; max-width: 1200px; margin: 30px auto; width: 90%; gap: 3%; }
+        .profile-sidebar { flex: 0 0 25%; min-width: 260px; }
+        .profile-content { flex: 1; min-width: 320px; }
+
+        .back-link { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #64748B; font-size: 0.9rem; margin-bottom: 20px; font-weight: 600; }
+        .profile-menu { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #F1F5F9; }
+        .menu-item { width: 100%; padding: 16px 20px; border: none; background: none; display: flex; align-items: center; gap: 12px; font-family: inherit; font-size: 0.95rem; cursor: pointer; color: #64748B; transition: 0.2s; border-left: 4px solid transparent; text-align: left; }
+        .menu-item.active { background: #EFF6FF; color: #2563EB; font-weight: 700; border-left-color: #2563EB; }
+        .logout-btn { color: #EF4444; border-top: 1px solid #F1F5F9; }
+
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #F1F5F9; }
+        .card h2 { margin-top: 0; font-size: 1.4rem; margin-bottom: 25px; border-bottom: 2px solid #F8FAFC; padding-bottom: 15px; font-weight: 700; color: #1E293B; display: flex; justify-content: space-between; align-items: center; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+        .full-width { grid-column: 1 / -1; }
+        
+        .form-group label { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: #64748B; }
+        .form-input, .form-select { width: 100%; padding: 12px 15px; border: 1px solid #E2E8F0; border-radius: 10px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box; background: #F8FAFC; transition: 0.3s; }
+        .form-input.pr-10 { padding-right: 40px; } /* 💡 พื้นที่สำหรับไอคอนตา */
+        .form-input:focus, .form-select:focus { outline: none; border-color: #2563EB; background: white; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+
+        .btn-primary { background: #2563EB; color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(37,99,235,0.2); display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary:hover { background: #1D4ED8; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37,99,235,0.3); }
+        .btn-outline { background: white; color: #475569; border: 1px solid #CBD5E1; padding: 12px 30px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-outline:hover { background: #F1F5F9; color: #0F172A; }
+
+        /* 💡 สไตล์ปุ่มกดเปิด/ปิดตา */
+        .toggle-password { position: absolute; right: 12px; bottom: 12px; cursor: pointer; color: #94A3B8; transition: color 0.2s; background: transparent; border: none; padding: 0; display: flex; align-items: center; justify-content: center; }
+        .toggle-password:hover { color: #475569; }
+        .toggle-password:focus { outline: none; }
+
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+        #goog-gt-tt, .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+        .skiptranslate iframe { display: none !important; }
+        body { top: 0px !important; } 
+
+        @media (max-width: 900px) {
+            .profile-sidebar { flex: 0 0 100%; margin-bottom: 25px; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="store-header">
+        <div class="header-container">
+            <a href="index.html" class="logo-area">
+                <div class="logo-box"><i data-lucide="box" size="20"></i></div>
+                <h1>3D TECH</h1>
+            </a>
+            <div class="header-icons">
+                <button onclick="toggleLanguage()" class="lang-btn group">
+                    <i data-lucide="globe" class="w-4 h-4"></i>
+                    <span id="lang-display">TH</span>
+                </button>
+                <div class="user-display"><i data-lucide="user" size="18"></i> <span id="header-username">...</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="profile-layout">
+        <aside class="profile-sidebar">
+            <a href="index.html" class="back-link"><i data-lucide="chevron-left" size="16"></i> กลับไปหน้าหลัก</a>
+            <nav class="profile-menu">
+                <button class="menu-item active" onclick="switchTab('account', this)" id="btn-account"><i data-lucide="user" size="18"></i> บัญชีผู้ใช้</button>
+                <button class="menu-item" onclick="switchTab('address', this)" id="btn-address"><i data-lucide="map-pin" size="18"></i> ที่อยู่ของฉัน</button>
+                <button class="menu-item" onclick="switchTab('orders', this)" id="btn-orders"><i data-lucide="clipboard-list" size="18"></i> ประวัติการสั่งซื้อ</button>
+                <button class="menu-item logout-btn" onclick="logout()"><i data-lucide="log-out" size="18"></i> ออกจากระบบ</button>
+            </nav>
+        </aside>
+
+        <main class="profile-content">
+            
+            <section id="tab-account" class="tab-section active">
+                <div class="card">
+                    <h2>ข้อมูลส่วนตัว</h2>
+                    
+                    <div id="account-view-mode">
+                        <div class="space-y-4 mb-6">
+                            <div class="flex flex-col border-b border-slate-100 pb-3">
+                                <span class="text-sm font-bold text-slate-400">ชื่อผู้ใช้</span>
+                                <span id="view-name" class="text-lg font-semibold text-slate-800">-</span>
+                            </div>
+                            <div class="flex flex-col border-b border-slate-100 pb-3">
+                                <span class="text-sm font-bold text-slate-400">อีเมล</span>
+                                <span id="view-email" class="text-lg font-semibold text-slate-800">-</span>
+                            </div>
+                            <div class="flex flex-col border-b border-slate-100 pb-3">
+                                <span class="text-sm font-bold text-slate-400">เบอร์โทรศัพท์</span>
+                                <span id="view-phone" class="text-lg font-semibold text-slate-800">-</span>
+                            </div>
+                        </div>
+                        <button onclick="toggleAccountEditMode(true)" class="btn-primary"><i data-lucide="edit-3" size="18"></i> แก้ไขข้อมูลส่วนตัว</button>
+                    </div>
+
+                    <div id="account-edit-mode" style="display: none;">
+                        <div class="form-grid mb-6">
+                            <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" id="p-name" class="form-input"></div>
+                            <div class="form-group"><label>เบอร์โทรศัพท์</label><input type="tel" id="p-phone" class="form-input" placeholder="08xxxxxxxx"></div>
+                            
+                            <div class="form-group full-width"><label>อีเมล (แก้ไขไม่ได้)</label><input type="email" id="p-email" class="form-input" readonly></div>
+                            
+                            <div class="form-group relative">
+                                <label>เปลี่ยนรหัสผ่านใหม่ (ไม่บังคับ)</label>
+                                <input type="password" id="p-password" class="form-input pr-10" placeholder="ปล่อยว่างหากไม่ต้องการเปลี่ยน">
+                                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('p-password', 'eye-icon-pass')">
+                                    <i data-lucide="eye-off" id="eye-icon-pass" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div class="form-group relative">
+                                <label>ยืนยันรหัสผ่านใหม่</label>
+                                <input type="password" id="p-confirm-password" class="form-input pr-10" placeholder="กรอกรหัสผ่านใหม่อีกครั้ง">
+                                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('p-confirm-password', 'eye-icon-confirm')">
+                                    <i data-lucide="eye-off" id="eye-icon-confirm" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="saveProfile()" class="btn-primary"><i data-lucide="save" size="18"></i> บันทึกข้อมูล</button>
+                            <button type="button" onclick="toggleAccountEditMode(false)" class="btn-outline">ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-address" class="tab-section" style="display:none;">
+                <div class="card">
+                    <h2 class="flex justify-between items-center">
+                        ที่อยู่ของฉัน
+                        <button onclick="showAddressForm()" id="btn-add-address" class="text-sm bg-blue-50 text-primary px-4 py-2 rounded-lg font-bold hover:bg-blue-100 transition flex items-center gap-1">
+                            <i data-lucide="plus" size="16"></i> เพิ่มที่อยู่ใหม่
+                        </button>
+                    </h2>
+                    
+                    <div id="address-list-mode">
+                        <div id="address-container" class="flex flex-col gap-6 text-slate-500 py-2 w-full">
+                            <div class="text-center py-8">กำลังโหลดที่อยู่...</div>
+                        </div>
+                    </div>
+
+                    <div id="address-form-mode" style="display:none;">
+                        <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6">
+                            <h3 id="address-form-title" class="font-bold text-primary m-0 flex items-center gap-2"><i data-lucide="map-pin"></i> เพิ่มที่อยู่จัดส่งใหม่</h3>
+                        </div>
+                        
+                        <input type="hidden" id="edit-addr-id" value="">
+
+                        <div class="form-grid mb-6">
+                            
+                            <div class="form-group">
+                                <label>ชื่อ-นามสกุล ผู้รับ <span style="color:red;">*</span></label>
+                                <input type="text" id="p-fullname" class="form-input" placeholder="เช่น สมชาย ใจดี">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>เบอร์โทรศัพท์ <span style="color:red;">*</span></label>
+                                <input type="tel" id="p-addr-phone" class="form-input" placeholder="08xxxxxxxx">
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>ประเภทที่อยู่ <span style="color:red;">*</span></label>
+                                <select id="p-type" class="form-select">
+                                    <option value="บ้าน">บ้าน (Home)</option>
+                                    <option value="ที่ทำงาน">ที่ทำงาน (Work)</option>
+                                    <option value="คอนโด/หอพัก">คอนโด / หอพัก (Condo/Apartment)</option>
+                                    <option value="อื่นๆ">อื่นๆ (Other)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>บ้านเลขที่ / หมู่ / อาคาร / ชั้น <span style="color:red;">*</span></label>
+                                <input type="text" id="p-house-no" class="form-input" placeholder="เช่น 123/45 หมู่ 1 อาคารสุขสันต์ ชั้น 3">
+                            </div>
+
+                            <div class="form-group">
+                                <label>ถนน (ถ้ามี)</label>
+                                <input type="text" id="p-road" class="form-input" placeholder="เช่น ถนนสุขุมวิท">
+                            </div>
+
+                            <div class="form-group">
+                                <label>ซอย (ถ้ามี)</label>
+                                <input type="text" id="p-soi" class="form-input" placeholder="เช่น ซอยสุขุมวิท 1">
+                            </div>
+
+                            <div class="form-group">
+                                <label>ตำบล / แขวง <span style="color:red;">*</span></label>
+                                <select id="p-subdistrict" class="form-select" disabled required>
+                                    <option value="">กำลังเตรียมระบบค้นหา...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>รหัสไปรษณีย์ <span style="color:red;">*</span></label>
+                                <input type="text" id="p-zip" class="form-input bg-slate-50 text-slate-500" readonly placeholder="ระบบจะกรอกให้อัตโนมัติ">
+                            </div>
+
+                            <div class="form-group">
+                                <label>อำเภอ / เขต <span style="color:red;">*</span></label>
+                                <select id="p-district" class="form-select" disabled required>
+                                    <option value="">ระบบจะกรอกใหัตโนมัติ</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>จังหวัด <span style="color:red;">*</span></label>
+                                <select id="p-province" class="form-select" required>
+                                    <option value="">ระบบจะกรอกให้อัตโนมัติ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button onclick="saveAddress()" class="btn-primary"><i data-lucide="save" size="18"></i> บันทึกที่อยู่</button>
+                            <button type="button" onclick="hideAddressForm()" class="btn-outline">ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-orders" class="tab-section" style="display:none;">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                        <h2 style="margin:0; border:none;">ประวัติการสั่งซื้อ</h2>
+                        <button onclick="loadOrderHistory()" style="background:#EFF6FF; border:none; cursor:pointer; color:#2563EB; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: 0.3s;" title="รีเฟรช">
+                            <i data-lucide="refresh-cw" size="18"></i>
+                        </button>
+                    </div>
+                    <div id="order-history-list"></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="google_translate_element" style="display:none;"></div>
+    
+    <script type="text/javascript">
+        function setLangCookie(lang) {
+            document.cookie = "googtrans=/th/" + lang + "; path=/";
+            document.cookie = "googtrans=/th/" + lang + "; domain=" + window.location.hostname + "; path=/";
+            localStorage.setItem('my_site_lang', lang);
+        }
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'th', includedLanguages: 'th,en', autoDisplay: false}, 'google_translate_element');
+        }
+        function toggleLanguage() {
+            let currentLang = localStorage.getItem('my_site_lang') || 'th';
+            let targetLang = currentLang === 'th' ? 'en' : 'th';
+            setLangCookie(targetLang);
+            window.location.reload(); 
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            let savedLang = localStorage.getItem('my_site_lang') || 'th';
+            let langDisplay = document.getElementById('lang-display');
+            if (langDisplay) langDisplay.innerText = savedLang.toUpperCase();
+        });
+
+        // 💡 ฟังก์ชันสลับแสดงรหัสผ่าน/ซ่อนรหัสผ่าน
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            
+            if (input.type === "password") {
+                input.type = "text";
+                icon.setAttribute("data-lucide", "eye"); 
+            } else {
+                input.type = "password";
+                icon.setAttribute("data-lucide", "eye-off"); 
+            }
+            
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="profile.js?v=16"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

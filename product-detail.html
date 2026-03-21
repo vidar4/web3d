@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายละเอียดสินค้า - 3D TECH</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#2563EB', primaryHover: '#1D4ED8' },
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body { background-color: #F8FAFC; top: 0px !important; }
+        .lang-btn {
+            display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px;
+            background: #ffffff; border: 1px solid #e2e8f0; color: #475569; font-weight: 700;
+            font-size: 0.85rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .lang-btn:hover { background: #eff6ff; border-color: #3b82f6; color: #2563eb; transform: translateY(-2px); }
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, #goog-gt-tt, .goog-tooltip { display: none !important; }
+        .skiptranslate iframe { display: none !important; }
+        
+        .admin-label { font-size: 14px; font-weight: 700; color: #475569; margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal-active { overflow: hidden; }
+        
+        /* ซ่อน Scrollbar ของรูปเล็กกรณีล้น */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ซ่อนลูกศรขึ้นลงในช่อง input number */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-prompt">
+
+    <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='index.html'">
+                    <div class="bg-primary p-2 rounded-lg text-white shadow-sm"><i data-lucide="box" class="w-5 h-5"></i></div>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">3D TECH</span>
+                </div>
+                <div class="flex items-center gap-4 sm:gap-6">
+                    <button onclick="toggleLanguage()" class="lang-btn group">
+                        <i data-lucide="globe" class="w-4 h-4 text-slate-400 group-hover:text-primary"></i>
+                        <span id="lang-display">TH</span>
+                    </button>
+                    <a href="cart.html" class="relative text-slate-500 hover:text-primary transition-colors group">
+                        <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                        <span id="cartBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold border border-white hidden shadow-sm">0</span>
+                    </a>
+                    <a href="profile.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 sm:px-4 py-2 rounded-full font-medium transition flex items-center gap-2 border border-slate-200">
+                        <div class="bg-primary rounded-full p-1 text-white shadow-sm"><i data-lucide="user" class="w-4 h-4"></i></div>
+                        <span id="welcomeUser" class="hidden sm:inline text-sm font-bold">เข้าสู่ระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16">
+        <a href="index.html" class="inline-flex items-center gap-2 text-slate-500 hover:text-primary font-bold mb-6 transition-all hover:-translate-x-1 w-max">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i> กลับไปหน้าแรก
+        </a>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-white p-6 md:p-8 rounded-[24px] border border-slate-200 shadow-sm">
+            
+            <div class="lg:col-span-5 flex flex-col gap-4">
+                <div class="w-full aspect-square bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center relative group">
+                    <div id="image-loader" class="absolute inset-0 flex items-center justify-center bg-slate-50 z-10">
+                        <i data-lucide="loader-2" class="w-8 h-8 text-primary animate-spin"></i>
+                    </div>
+                    <img id="detail-main-image" src="" alt="สินค้า" class="w-full h-full object-cover opacity-0 transition-all duration-500 group-hover:scale-105">
+                </div>
+                
+                <div id="sub-images-container" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+                    </div>
+            </div>
+
+            <div class="lg:col-span-7 flex flex-col">
+                <div class="mb-6 border-b border-slate-100 pb-6">
+                    <span id="detail-category" class="text-primary font-bold text-sm tracking-wider uppercase mb-2 inline-block bg-blue-50 px-3 py-1 rounded-md">กำลังโหลด...</span>
+                    <h1 id="detail-name" class="text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-3">กำลังโหลด...</h1>
+                    <div class="flex items-end gap-2">
+                        <div id="detail-price" class="text-4xl font-black text-primary">฿0</div>
+                        <span class="text-slate-400 font-medium mb-1">/ ชิ้น</span>
+                    </div>
+                </div>
+
+                <div class="space-y-8 flex-1">
+                    <div>
+                        <label class="admin-label">ตัวเลือกสี (Color Options)</label>
+                        <div id="color-options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-end mb-3">
+                            <label class="admin-label" style="margin-bottom: 0;">ตัวเลือกวัสดุ (Material)</label>
+                            <button onclick="openMaterialModal()" class="text-[13px] text-primary hover:text-primaryHover font-bold flex items-center gap-1 transition-all hover:underline bg-blue-50 px-2 py-1 rounded-md">
+                                <i data-lucide="help-circle" class="w-4 h-4"></i> วัสดุต่างกันอย่างไร?
+                            </button>
+                        </div>
+                        <div id="material-options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-6">
+                        <label class="admin-label flex items-center justify-between">
+                            ขนาดโมเดล (DIMENSION)
+                            <div class="bg-slate-100 p-1 rounded-lg flex items-center gap-1 border border-slate-200">
+                                <button type="button" id="btn-mode-standard" onclick="toggleSizeMode('standard')" class="px-3 py-1 text-[11px] md:text-xs font-bold rounded-md bg-white text-primary shadow-sm transition-all border border-slate-200">มาตรฐาน</button>
+                                <button type="button" id="btn-mode-custom" onclick="toggleSizeMode('custom')" class="px-3 py-1 text-[11px] md:text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all border border-transparent">กำหนดเอง</button>
+                            </div>
+                        </label>
+
+                        <div id="standard-size-box" class="mt-4">
+                            <div id="size-options-container" class="flex flex-wrap gap-3">
+                                </div>
+                            <p class="text-xs text-slate-400 mt-3 flex items-center gap-1.5">
+                                <i data-lucide="info" class="w-3.5 h-3.5"></i> ขนาดจริงอาจคลาดเคลื่อนเล็กน้อยตามสัดส่วนที่ถูกต้องของโมเดล
+                            </p>
+                        </div>
+
+                        <div id="custom-size-box" class="hidden mt-4 bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                            <p class="text-xs text-slate-600 font-bold mb-4">กรุณาระบุขนาดที่ต้องการ (เซนติเมตร)</p>
+                            
+                            <div class="flex flex-col sm:flex-row items-center gap-3">
+                                <div class="w-full flex-1">
+                                    <div class="flex items-center bg-white border border-slate-300 rounded-xl overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
+                                        <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-3 border-r border-slate-300">กว้าง</span>
+                                        <input type="number" id="custom-w" min="1" step="0.1" class="w-full p-2 text-sm md:text-base outline-none text-center font-bold text-slate-900" placeholder="0">
+                                    </div>
+                                </div>
+                                <span class="text-slate-400 font-black text-sm hidden sm:block">X</span>
+                                <div class="w-full flex-1">
+                                    <div class="flex items-center bg-white border border-slate-300 rounded-xl overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
+                                        <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-3 border-r border-slate-300">ยาว</span>
+                                        <input type="number" id="custom-l" min="1" step="0.1" class="w-full p-2 text-sm md:text-base outline-none text-center font-bold text-slate-900" placeholder="0">
+                                    </div>
+                                </div>
+                                <span class="text-slate-400 font-black text-sm hidden sm:block">X</span>
+                                <div class="w-full flex-1">
+                                    <div class="flex items-center bg-white border border-slate-300 rounded-xl overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
+                                        <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-3 border-r border-slate-300">สูง</span>
+                                        <input type="number" id="custom-h" min="1" step="0.1" class="w-full p-2 text-sm md:text-base outline-none text-center font-bold text-slate-900" placeholder="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2.5">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
+                                <div>
+                                    <h4 class="text-xs font-bold text-amber-800 mb-0.5">หมายเหตุการสั่งทำขนาดพิเศษ</h4>
+                                    <p class="text-[11px] text-amber-700 leading-snug">
+                                        การกำหนดขนาดเองอาจส่งผลต่อการใช้วัสดุและเวลาในการผลิต ซึ่ง <b>อาจมีค่าใช้จ่ายเพิ่มเติม</b> โดยแอดมินจะทำการประเมินราคาและแจ้งให้ท่านทราบเพื่อยืนยันอีกครั้งก่อนเริ่มผลิต
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <label class="admin-label">จำนวน (ชิ้น)</label>
+                        <div class="inline-flex items-center border border-slate-300 rounded-xl overflow-hidden h-12 w-32 md:w-40 bg-white shadow-sm">
+                            <button onclick="updateQty(-1)" class="w-12 h-full flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:text-primary font-bold transition text-lg">-</button>
+                            <input type="text" id="qty-input" value="1" readonly class="w-full h-full text-center font-black text-slate-900 border-x border-slate-300 outline-none">
+                            <button onclick="updateQty(1)" class="w-12 h-full flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:text-primary font-bold transition text-lg">+</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button id="add-to-cart-btn" class="mt-8 w-full bg-primary hover:bg-primaryHover text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all shadow-[0_8px_20px_rgba(37,99,235,0.3)] hover:-translate-y-1 active:scale-95">
+                    <i data-lucide="shopping-cart" class="w-6 h-6"></i> เพิ่มลงรถเข็น
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white p-6 md:p-10 rounded-[24px] border border-slate-200 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-6 mb-6 gap-4">
+                <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
+                    <i data-lucide="message-square" class="text-primary w-6 h-6"></i> รีวิวจากลูกค้า
+                </h2>
+                <div id="reviews-summary" class="text-left md:text-right">
+                    </div>
+            </div>
+            
+            <div id="reviews-container" class="space-y-6">
+                <div class="text-center py-10 text-slate-500">
+                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-3 text-primary"></i>
+                    <p class="font-medium">กำลังโหลดรีวิว...</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="materialModal" class="fixed inset-0 z-[100] hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="info" class="text-primary"></i> ข้อมูลวัสดุสำหรับการปริ้นท์
+                </h3>
+                <button onclick="closeMaterialModal()" class="p-2 hover:bg-slate-200 rounded-full transition text-slate-400">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div class="flex gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100 shadow-sm">
+                        <span class="font-black text-primary">PLA</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg mb-1">PLA (Polylactic Acid)</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">วัสดุมาตรฐาน พิมพ์ง่าย ให้รายละเอียดคมชัด ผิวเรียบเนียน เหมาะสำหรับตั้งโชว์</p>
+                    </div>
+                </div>
+                <hr class="border-slate-100">
+                <div class="flex gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100 shadow-sm">
+                        <span class="font-black text-orange-600">PETG</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg mb-1">PETG</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">ทนทานสูง ทนความร้อนและแสงแดด เหมาะสำหรับชิ้นส่วนที่ต้องใช้งานจริง</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100">
+                <button onclick="closeMaterialModal()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition shadow-lg">เข้าใจแล้ว</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="google_translate_element" style="display:none;"></div>
+    <script type="text/javascript">
+        function setLangCookie(lang) {
+            document.cookie = "googtrans=/th/" + lang + "; path=/";
+            localStorage.setItem('my_site_lang', lang);
+        }
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'th', includedLanguages: 'th,en', autoDisplay: false}, 'google_translate_element');
+        }
+        function toggleLanguage() {
+            let currentLang = localStorage.getItem('my_site_lang') || 'th';
+            let targetLang = currentLang === 'th' ? 'en' : 'th';
+            setLangCookie(targetLang);
+            window.location.reload(); 
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            let savedLang = localStorage.getItem('my_site_lang') || 'th';
+            let langDisplay = document.getElementById('lang-display');
+            if (langDisplay) langDisplay.innerText = savedLang.toUpperCase();
+        });
+
+        function toggleSizeMode(mode) {
+            const standardBtn = document.getElementById('btn-mode-standard');
+            const customBtn = document.getElementById('btn-mode-custom');
+            const standardBox = document.getElementById('standard-size-box');
+            const customBox = document.getElementById('custom-size-box');
+
+            if (mode === 'standard') {
+                standardBtn.className = "px-3 py-1 text-[11px] md:text-xs font-bold rounded-md bg-white text-primary shadow-sm transition-all border border-slate-200";
+                customBtn.className = "px-3 py-1 text-[11px] md:text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all border border-transparent";
+                
+                standardBox.classList.remove('hidden');
+                customBox.classList.add('hidden');
+                
+                window.currentSizeMode = 'standard';
+                
+            } else {
+                customBtn.className = "px-3 py-1 text-[11px] md:text-xs font-bold rounded-md bg-white text-primary shadow-sm transition-all border border-slate-200";
+                standardBtn.className = "px-3 py-1 text-[11px] md:text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all border border-transparent";
+                
+                standardBox.classList.add('hidden');
+                customBox.classList.remove('hidden');
+                
+                window.currentSizeMode = 'custom';
+                
+                document.querySelectorAll('.size-btn').forEach(b => {
+                    b.classList.remove('border-2', 'border-primary', 'bg-primary', 'text-white', 'shadow-md', 'shadow-[0_4px_12px_rgba(37,99,235,0.2)]');
+                    b.classList.add('border-slate-300', 'bg-white');
+                    
+                    const mainText = b.querySelector('.size-main-text');
+                    if(mainText) mainText.className = "size-main-text font-black text-sm mb-1 transition-colors text-slate-600 group-hover:text-primary";
+
+                    const subText = b.querySelector('.size-sub-text');
+                    if(subText) subText.className = "size-sub-text text-xs tracking-wide mt-0.5 transition-colors text-slate-500 group-hover:text-blue-600";
+                });
+            }
+        }
+        
+        window.currentSizeMode = 'standard';
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="detail.js?v=8"></script> 
+</body>
+</html>

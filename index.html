@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D TECH - Next Gen 3D Models</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563EB', 
+                        primaryHover: '#1D4ED8',
+                    },
+                    fontFamily: {
+                        prompt: ['Prompt', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        #productGrid h3, 
+        #productGrid h4, 
+        #productGrid h5 { color: #0F172A !important; }
+        #productGrid p { color: #475569 !important; }
+        .product-name { color: #2563EB !important; }
+
+        .lang-btn {
+            display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+            border-radius: 50px; background: #ffffff; border: 1px solid #e2e8f0;
+            color: #475569; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .lang-btn:hover { background: #eff6ff; border-color: #3b82f6; color: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
+        .lang-btn i { transition: transform 0.8s ease; }
+        .lang-btn:hover i { transform: rotate(360deg); }
+        .lang-btn::after {
+            content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transform: skewX(-25deg); transition: 0.5s;
+        }
+        .lang-btn:hover::after { left: 200%; }
+
+        body { top: 0px !important; }
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+        #goog-gt-tt, .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+        .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+        .skiptranslate iframe { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-prompt">
+
+    <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='index.html'">
+                    <div class="bg-primary p-2 rounded-lg text-white">
+                        <i data-lucide="box" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">3D TECH</span>
+                </div>
+
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="index.html" class="text-primary font-semibold">หน้าแรก</a>
+                    <a href="#store" class="text-slate-500 hover:text-primary transition-colors">คลังโมเดล</a>
+                    <a href="status.html" class="text-slate-500 hover:text-primary transition-colors">ติดตามสถานะ</a>
+                    <a href="to-pay.html" class="text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
+                        ที่ต้องชำระ
+                        <span id="to-pay-badge-index" class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden font-bold">0</span>
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-4 sm:gap-6">
+                    <button onclick="toggleLanguage()" class="lang-btn group" title="Change Language">
+                        <i data-lucide="globe" class="w-4 h-4"></i>
+                        <span id="lang-display">TH</span>
+                    </button>
+                    
+                    <a href="cart.html" class="relative text-slate-500 hover:text-primary transition-colors group">
+                        <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                        <span id="cartBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold border border-white hidden">0</span>
+                    </a>
+                    
+                    <a href="profile.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 sm:px-4 py-2 rounded-full font-medium transition flex items-center gap-2">
+                        <div class="bg-primary rounded-full p-1 text-white"><i data-lucide="user" class="w-4 h-4"></i></div>
+                        <span id="welcomeUser" class="hidden sm:inline"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative pt-32 pb-20 overflow-hidden bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-primary text-sm font-medium mb-6">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                        <span>มาใหม่: คอลเลกชันกระถางมินิมอล</span>
+                    </div>
+
+                    <h1 class="text-5xl lg:text-7xl font-bold text-slate-900 leading-[1.1] tracking-tight mb-6">
+                        <span>เนรมิตโลก</span> <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-500">ในแบบ 3 มิติ</span>
+                    </h1>
+
+                    <p class="text-lg text-slate-500 max-w-xl mb-10 leading-relaxed">
+                        ศูนย์รวมโมเดล 3D คุณภาพสูงที่ถูกคัดสรรมาสำหรับนักสร้างสรรค์ <br>
+                        ดาวน์โหลดหรือสั่งพิมพ์ด้วยวัสดุเกรดพรีเมียม ส่งตรงถึงมือคุณ
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <a href="#store" class="w-full sm:w-auto bg-primary text-white px-8 py-4 rounded-xl font-bold hover:bg-primaryHover transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
+                            <span>เริ่มเลือกซื้อ</span> <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="relative hidden lg:block">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-blue-100 to-cyan-50 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+                    <div class="relative z-10 w-full h-[500px] flex items-center justify-center">
+                         <i data-lucide="layers" class="w-64 h-64 text-primary animate-bounce"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main id="store" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        
+        <div class="flex flex-col md:flex-row gap-8 items-start">
+            
+            <div class="w-full md:w-64 shrink-0 sticky top-24">
+                <h3 class="text-xl font-bold text-slate-900 mb-6">หมวดหมู่โมเดล</h3>
+                <ul class="flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0" id="category-list">
+                    <li><button onclick="filterCategory('all', this)" class="category-tab active w-full text-left px-4 py-3 rounded-lg font-medium text-primary bg-blue-50 transition-colors whitespace-nowrap">ทั้งหมด (All)</button></li>
+                    <li><button onclick="filterCategory('โมเดล', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">โมเดล / ฟิกเกอร์</button></li>
+                    <li><button onclick="filterCategory('กระถางต้นไม้', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">กระถางต้นไม้</button></li>
+                    <li><button onclick="filterCategory('ของตกแต่ง', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">ของตกแต่ง</button></li>
+                    <li><button onclick="filterCategory('ของเล่น', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">ของเล่น</button></li>
+                    <li><button onclick="filterCategory('พวงกุญแจ', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">พวงกุญแจ</button></li>
+                    <li><button onclick="filterCategory('กล่อง', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">กล่องใส่ของ</button></li>
+                    <li><button onclick="filterCategory('กรวย', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">กรวย</button></li>
+                    <li><button onclick="filterCategory('พาเหลด', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">พาเหลด</button></li>
+                    <li><button onclick="filterCategory('อื่นๆ', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">อื่นๆ</button></li>
+                </ul>
+            </div>
+
+            <div class="flex-1 w-full">
+                <div class="relative w-full md:w-96 mb-8 ml-auto">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
+                    <input type="text" id="searchInput" placeholder="ค้นหาชื่อโมเดล..." class="w-full bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition shadow-sm text-slate-700">
+                </div>
+
+                <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <p class="col-span-full text-center text-slate-500 py-20">
+                        <i data-lucide="loader" class="w-8 h-8 animate-spin mx-auto mb-3 text-primary"></i>
+                        กำลังโหลดโมเดล 3D...
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-20 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex items-center justify-center gap-2 mb-4 text-slate-900">
+                <i data-lucide="box" class="w-6 h-6 text-primary"></i>
+                <span class="text-xl font-bold tracking-tight">3D TECH</span>
+            </div>
+            <p class="text-slate-500 text-sm">© 2026 3D TECH Store. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <script type="text/javascript">
+        function setLangCookie(lang) {
+            document.cookie = "googtrans=/th/" + lang + "; path=/";
+            document.cookie = "googtrans=/th/" + lang + "; domain=" + window.location.hostname + "; path=/";
+            localStorage.setItem('my_site_lang', lang);
+        }
+
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'th', 
+                includedLanguages: 'th,en',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+
+        function toggleLanguage() {
+            let currentLang = localStorage.getItem('my_site_lang') || 'th';
+            let targetLang = currentLang === 'th' ? 'en' : 'th';
+            setLangCookie(targetLang);
+            window.location.reload(); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let savedLang = localStorage.getItem('my_site_lang') || 'th';
+            let langDisplay = document.getElementById('lang-display');
+            if (langDisplay) { langDisplay.innerText = savedLang.toUpperCase(); }
+        });
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="main.js?v=2"></script>
+    
+    <script>
+        lucide.createIcons();
+
+        function filterCategory(cat, element) {
+            document.querySelectorAll('.category-tab').forEach(el => {
+                el.classList.remove('text-primary', 'bg-blue-50', 'active');
+                el.classList.add('text-slate-500', 'hover:bg-slate-100');
+            });
+            element.classList.remove('text-slate-500', 'hover:bg-slate-100');
+            element.classList.add('text-primary', 'bg-blue-50', 'active');
+            
+            if(typeof window.loadProducts === 'function') {
+                window.loadProducts(cat);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แจ้งชำระเงินมัดจำ - 3D Tech</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#2563EB', primaryHover: '#1D4ED8', bgLight: '#F8FAFC' },
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body { background-color: #F8FAFC; top: 0px !important; }
+        
+        .form-input { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border: 1px solid #E2E8F0; 
+            border-radius: 14px; 
+            font-family: inherit; 
+            font-size: 0.95rem; 
+            background: #F8FAFC; 
+            transition: 0.3s; 
+            outline: none; 
+            color: #334155;
+        }
+        .form-input:focus { border-color: #2563EB; background: white; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        .form-label { font-size: 0.9rem; font-weight: 700; color: #334155; margin-bottom: 8px; display: block; }
+        
+        .upload-box { border: 2px dashed #CBD5E1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #94A3B8; background: #F8FAFC; transition: 0.3s; overflow: hidden; position: relative; min-height: 220px; }
+        .upload-box:hover { border-color: #2563EB; background: #EFF6FF; color: #2563EB; }
+        .upload-box.has-image { border: none; background: transparent; }
+        .upload-box.has-image .upload-placeholder { display: none; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        .nav-link { color: #64748B; font-weight: 600; transition: all 0.2s; position: relative; }
+        .nav-link:hover, .nav-link.active { color: #2563EB; }
+        .nav-link.active::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 100%; height: 2px; background: #2563EB; border-radius: 2px; }
+
+        .lang-btn {
+            display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+            border-radius: 50px; background: #ffffff; border: 1px solid #e2e8f0;
+            color: #475569; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .lang-btn:hover { background: #eff6ff; border-color: #3b82f6; color: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
+
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+        #goog-gt-tt, .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+        .skiptranslate iframe { display: none !important; }
+    </style>
+</head>
+<body class="text-slate-800 font-prompt antialiased pb-20">
+
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition-all active:scale-95">
+                <div class="bg-primary p-2 rounded-xl text-white shadow-lg shadow-blue-500/20">
+                    <i data-lucide="box" class="w-5 h-5"></i>
+                </div>
+                <h1 class="text-xl font-black tracking-tight text-slate-900">3D TECH</h1>
+            </a>
+
+            <div class="hidden md:flex items-center gap-8">
+                <a href="index.html" class="nav-link">หน้าแรก</a>
+                <a href="index.html#store" class="nav-link">คลังโมเดล</a>
+                <a href="status.html" class="nav-link">ติดตามสถานะ</a>
+                <a href="to-pay.html" class="nav-link flex items-center gap-1 active">
+                    ที่ต้องชำระ
+                </a>
+            </div>
+
+            <div class="flex items-center gap-3 md:gap-4">
+                <button onclick="toggleLanguage()" class="lang-btn group" title="Change Language">
+                    <i data-lucide="globe" class="w-4 h-4 text-slate-400 group-hover:text-primary"></i>
+                    <span id="lang-display">TH</span>
+                </button>
+
+                <a href="cart.html" class="p-2 text-slate-500 hover:text-primary hover:bg-blue-50 rounded-full transition-colors relative">
+                    <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                    <span id="cartBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold border border-white hidden">0</span>
+                </a>
+
+                <div class="flex items-center gap-2 bg-slate-50 p-1 pr-4 rounded-full border border-slate-200">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white shadow-sm">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                    </div>
+                    <span id="welcome-user" class="text-xs md:text-sm font-bold truncate max-w-[80px] md:max-w-[120px]">User</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 pt-12">
+        
+        <div class="mb-8">
+            <a href="to-pay.html" class="inline-flex items-center gap-2 text-slate-500 hover:text-primary font-semibold text-sm transition-all hover:-translate-x-1 group">
+                <i data-lucide="chevron-left" class="w-4 h-4 transition-transform group-hover:scale-125"></i> ย้อนกลับไปรายการที่ต้องชำระ
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-5 space-y-6">
+                
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                    <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-4">
+                        <h2 class="text-xl font-black flex items-center gap-2 text-slate-900">
+                            <i data-lucide="shopping-bag" class="text-primary w-6 h-6"></i> สรุปรายการสั่งซื้อ
+                        </h2>
+                        <span id="display-order-id" class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">กำลังโหลด...</span>
+                    </div>
+                    
+                    <div id="display-items" class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 mb-4">
+                        <p class="text-sm text-slate-500 animate-pulse text-center py-8">กำลังโหลดข้อมูลการสั่งซื้อ...</p>
+                    </div>
+                    
+                    <div class="border-t border-slate-100 pt-4 flex justify-between items-center">
+                        <span class="text-slate-500 font-bold">ยอดรวมสินค้าทั้งหมด:</span>
+                        <span id="display-total" class="font-black text-slate-900 text-xl tracking-tight">฿0.00</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                    <h2 class="text-lg font-bold mb-4 text-slate-900">ยอดชำระเงินมัดจำ (50%)</h2>
+                    
+                    <div class="bg-blue-600 p-5 rounded-2xl text-center text-white shadow-lg shadow-blue-600/20 mb-6">
+                        <h3 id="display-deposit" class="text-4xl font-black tracking-tight">฿0.00</h3>
+                    </div>
+
+                    <h2 class="text-sm font-bold mb-3 text-slate-900">ช่องทางการโอนเงิน</h2>
+                    <div class="space-y-4">
+                        <div class="border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden">
+                            <span class="bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl absolute top-0 right-0">สแกนจ่าย</span>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" alt="QR Code" class="w-28 h-28 mix-blend-multiply opacity-80 mb-2">
+                            <p class="text-xs text-slate-500 font-medium">ชื่อบัญชี: บจก. ทรีดีเทค นวัตกรรม</p>
+                        </div>
+                        <div class="border border-slate-200 rounded-2xl p-4">
+                            <div class="flex items-center gap-4 bg-white p-2 rounded-xl">
+                                <div class="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0">SCB</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs text-slate-500 mb-0.5">ธนาคารไทยพาณิชย์</p>
+                                    <p class="text-sm font-black text-slate-800 tracking-wider">123-4-56789-0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 sticky top-24 h-fit">
+                <form id="paymentForm" class="bg-white p-6 md:p-8 lg:p-10 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-start gap-4 mb-8">
+                        <div class="bg-[#FFF8EA] text-[#F59E0B] p-3 rounded-2xl shrink-0">
+                            <i data-lucide="file-check" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-black text-slate-900 leading-tight mb-1">แบบฟอร์มแจ้งชำระเงิน</h2>
+                            <p class="text-sm text-slate-500">กรุณากรอกข้อมูลให้ตรงกับสลิป เพื่อความรวดเร็วในการตรวจสอบ</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-6">
+                        
+                        <div>
+                            <label class="form-label">ชื่อ-นามสกุล (ผู้โอน) *</label>
+                            <div class="relative">
+                                <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none"></i>
+                                <input type="text" id="pay-name" class="form-input pl-12" placeholder="สมชาย ใจดี" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">เลขที่บัญชีที่คุณใช้โอน *</label>
+                            <div class="relative">
+                                <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none"></i>
+                                <input type="text" id="pay-account" class="form-input pl-12" placeholder="กรอกเลขที่บัญชี (เฉพาะตัวเลข)" required maxlength="12" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label">ช่องทางการโอน *</label>
+                            <select id="pay-method" class="form-input text-slate-600" required>
+                                <option value="" disabled selected>-- เลือกช่องทาง --</option>
+                                <option value="สแกน QR Code">สแกน QR Code</option>
+                                <option value="Mobile Banking">Mobile Banking (แอปธนาคาร)</option>
+                                <option value="ตู้ ATM">ตู้ ATM</option>
+                                <option value="เคาน์เตอร์ธนาคาร">เคาน์เตอร์ธนาคาร</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">ธนาคารของคุณ (ที่ใช้โอน) *</label>
+                            <select id="pay-bank" class="form-input text-slate-600" required>
+                                <option value="" disabled selected>-- เลือกธนาคาร --</option>
+                                <option value="KBank (กสิกรไทย)">KBank (กสิกรไทย)</option>
+                                <option value="SCB (ไทยพาณิชย์)">SCB (ไทยพาณิชย์)</option>
+                                <option value="BBL (กรุงเทพ)">BBL (กรุงเทพ)</option>
+                                <option value="KTB (กรุงไทย)">KTB (กรุงไทย)</option>
+                                <option value="Krungsri (กรุงศรี)">Krungsri (กรุงศรี)</option>
+                                <option value="TTB (ทหารไทยธนชาต)">TTB (ทหารไทยธนชาต)</option>
+                                <option value="PromptPay (พร้อมเพย์)">PromptPay / Wallet</option>
+                                <option value="อื่นๆ">อื่นๆ</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label">วันที่โอน (ตามสลิป) *</label>
+                            <input type="date" id="pay-date" class="form-input" required>
+                        </div>
+                        <div>
+                            <label class="form-label">เวลาที่โอน (ตามสลิป) *</label>
+                            <input type="time" id="pay-time" class="form-input" required>
+                        </div>
+
+                        <div class="md:col-span-2 mt-2">
+                            <label class="form-label">อัปโหลดหลักฐานการโอนเงิน (สลิป) *</label>
+                            <label class="upload-box mt-2" id="slip-preview-box">
+                                <input type="file" id="pay-slip-file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" required onchange="previewSlipImage(this)">
+                                
+                                <div class="upload-placeholder flex flex-col items-center pointer-events-none">
+                                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 text-primary border border-slate-100">
+                                        <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700">คลิกเพื่ออัปโหลดสลิป</span>
+                                    <span class="text-xs text-slate-400 mt-2">รองรับไฟล์ JPG, PNG</span>
+                                </div>
+
+                                <img id="slip-img" src="" class="absolute inset-0 w-full h-full object-contain bg-black/5 hidden pointer-events-none p-2 rounded-2xl">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-6 mt-8">
+                        <button type="submit" id="submit-btn" class="w-full bg-primary hover:bg-primaryHover text-white py-4 rounded-xl font-black text-lg transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2 active:scale-[0.98]">
+                            <i data-lucide="check-circle" class="w-6 h-6"></i> ยืนยันการแจ้งชำระเงิน
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </main>
+
+    <div id="addressModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+        <div id="addressModalBox" class="bg-white rounded-3xl w-full max-w-xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[85vh] flex flex-col">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="text-xl font-bold text-slate-900">เลือกที่อยู่จัดส่ง</h3>
+                <button type="button" onclick="closeAddressModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-4 custom-scrollbar" id="address-list-container">
+                <p class="text-center text-slate-500 py-4"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-primary"></i>กำลังโหลดข้อมูล...</p>
+            </div>
+            
+            <div class="p-6 border-t border-slate-100 shrink-0">
+                <button type="button" onclick="window.location.href='profile.html'" class="w-full py-3 rounded-xl font-bold text-primary bg-blue-50 hover:bg-blue-100 transition flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-5 h-5"></i> จัดการ/เพิ่มที่อยู่ใหม่ในโปรไฟล์
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <script type="text/javascript">
+        function setLangCookie(lang) {
+            document.cookie = "googtrans=/th/" + lang + "; path=/";
+            document.cookie = "googtrans=/th/" + lang + "; domain=" + window.location.hostname + "; path=/";
+            localStorage.setItem('my_site_lang', lang);
+        }
+
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'th', 
+                includedLanguages: 'th,en',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+
+        function toggleLanguage() {
+            let currentLang = localStorage.getItem('my_site_lang') || 'th';
+            let targetLang = currentLang === 'th' ? 'en' : 'th';
+            setLangCookie(targetLang);
+            window.location.reload(); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let savedLang = localStorage.getItem('my_site_lang') || 'th';
+            let langDisplay = document.getElementById('lang-display');
+            if (langDisplay) {
+                langDisplay.innerText = savedLang.toUpperCase();
+            }
+
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const cartBadge = document.getElementById('cartBadge');
+            if(cartBadge && cart.length > 0) {
+                cartBadge.innerText = cart.length;
+                cartBadge.classList.remove('hidden');
+            }
+        });
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="pay-deposit.js?v=8"></script>
+    <script> lucide.createIcons(); </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สรุปคำสั่งซื้อ - 3D TECH</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#2563EB', primaryHover: '#1D4ED8' },
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #F8FAFC; top: 0px !important; }
+        .lang-btn { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px; background: #ffffff; border: 1px solid #e2e8f0; color: #475569; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .lang-btn:hover { background: #eff6ff; border-color: #3b82f6; color: #2563eb; transform: translateY(-2px); }
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+        #goog-gt-tt, .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+        .skiptranslate iframe { display: none !important; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="font-prompt text-slate-800">
+
+    <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='index.html'">
+                    <div class="bg-primary p-2 rounded-lg text-white shadow-sm"><i data-lucide="box" class="w-5 h-5"></i></div>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">3D TECH</span>
+                    <span class="ml-2 pl-2 border-l-2 border-slate-200 text-primary font-semibold hidden sm:block">สรุปคำสั่งซื้อ</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleLanguage()" class="lang-btn group"><i data-lucide="globe" class="w-4 h-4 text-slate-400 group-hover:text-primary"></i><span id="lang-display">TH</span></button>
+                    <a href="profile.html" class="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full border border-slate-200 hover:bg-slate-200 transition">
+                        <i data-lucide="user" class="w-4 h-4 text-primary"></i>
+                        <span id="welcomeUser" class="text-sm font-bold text-slate-700">กำลังโหลด...</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
+        
+        <a href="cart.html" class="inline-flex items-center gap-2 text-slate-500 hover:text-primary font-bold mb-6 transition-all hover:-translate-x-1 group">
+            <i data-lucide="arrow-left" class="w-4 h-4 transition-transform group-hover:scale-125"></i> กลับไปหน้าตะกร้าสินค้า
+        </a>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <div class="flex-[1.5] flex flex-col gap-6">
+                
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-black text-slate-900 flex items-center gap-2"><i data-lucide="map-pin" class="text-primary w-6 h-6"></i> ที่อยู่จัดส่ง</h2>
+                        <button onclick="openAddressModal()" class="text-primary font-bold text-sm hover:underline flex items-center gap-1">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i> เปลี่ยนที่อยู่
+                        </button>
+                    </div>
+                    
+                    <div id="address-display" class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div class="text-center py-4 text-slate-400"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i> กำลังโหลดที่อยู่...</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h2 class="text-xl font-black text-slate-900 flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
+                        <i data-lucide="package" class="text-primary w-6 h-6"></i> รายการสินค้า
+                    </h2>
+                    
+                    <div id="checkout-items" class="space-y-4">
+                        </div>
+                </div>
+
+            </div>
+
+            <div class="flex-1 w-full lg:max-w-md">
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] sticky top-24">
+                    <h2 class="text-xl font-black text-slate-900 mb-6">สรุปคำสั่งซื้อ</h2>
+                    
+                    <div class="space-y-4 text-slate-600 mb-6">
+                        <div class="flex justify-between items-center">
+                            <span>ยอดรวมสินค้า (<span id="summary-qty">0</span> ชิ้น)</span>
+                            <span id="summary-subtotal" class="font-bold text-slate-900">฿0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>ค่าจัดส่ง</span>
+                            <span class="font-bold text-emerald-500">ฟรี</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-6 mb-8">
+                        <div class="flex justify-between items-end">
+                            <span class="text-slate-500 font-bold">ยอดสุทธิ</span>
+                            <div class="text-right">
+                                <span id="summary-total" class="text-3xl font-black text-primary tracking-tight">฿0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-submit-order" onclick="submitOrder()" class="w-full bg-primary hover:bg-primaryHover text-white py-4 rounded-xl font-black text-lg transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 hover:-translate-y-1 active:scale-95 disabled:opacity-50">
+                        <i data-lucide="send" class="w-5 h-5"></i> ส่งคำขอสั่งซื้อ
+                    </button>
+
+                    <p class="text-xs text-center text-slate-400 mt-4 flex items-center justify-center gap-1">
+                        <i data-lucide="info" class="w-3.5 h-3.5"></i> เมื่อแอดมินอนุมัติแล้ว จึงจะสามารถชำระเงินได้
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="addressModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+        <div id="addressModalBox" class="bg-white rounded-3xl w-full max-w-xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[85vh] flex flex-col">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="text-xl font-bold text-slate-900">เลือกที่อยู่จัดส่ง</h3>
+                <button onclick="closeAddressModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto" id="address-modal-list">
+                </div>
+            <div class="p-6 border-t border-slate-100 shrink-0">
+                <button onclick="window.location.href='profile.html'" class="w-full py-3 rounded-xl font-bold text-primary bg-blue-50 hover:bg-blue-100 transition flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-5 h-5"></i> จัดการ/เพิ่มที่อยู่ใหม่ในโปรไฟล์
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="google_translate_element" style="display:none;"></div>
+    
+    <script type="text/javascript">
+        function setLangCookie(lang) {
+            document.cookie = "googtrans=/th/" + lang + "; path=/";
+            localStorage.setItem('my_site_lang', lang);
+        }
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'th', includedLanguages: 'th,en', autoDisplay: false}, 'google_translate_element');
+        }
+        function toggleLanguage() {
+            let currentLang = localStorage.getItem('my_site_lang') || 'th';
+            let targetLang = currentLang === 'th' ? 'en' : 'th';
+            setLangCookie(targetLang);
+            window.location.reload(); 
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            let savedLang = localStorage.getItem('my_site_lang') || 'th';
+            let langDisplay = document.getElementById('lang-display');
+            if (langDisplay) langDisplay.innerText = savedLang.toUpperCase();
+        });
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="payment.js?v=2"></script>
+</body>
+</html>

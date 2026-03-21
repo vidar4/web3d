@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบจัดการร้านค้า - 3D Tech Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#2563EB', primaryHover: '#1D4ED8' },
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { top: 0px !important; background-color: #F8FAFC !important; font-family: 'Prompt', sans-serif !important; margin: 0; padding: 0; overflow-x: hidden; }
+
+        /* 💡 เมนู Navbar */
+        .nav-link { color: #64748B; font-weight: 600; transition: color 0.2s; position: relative; text-decoration: none; cursor: pointer; padding: 8px 0; }
+        .nav-link:hover { color: #2563EB; }
+        .nav-link.active { color: #2563EB; }
+        .nav-link.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: #2563EB; border-radius: 3px; }
+
+        .lang-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 50px; background: white; border: 1px solid #E2E8F0; color: #475569; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .lang-btn:hover { background: #EFF6FF; border-color: #3B82F6; color: #2563EB; }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 💡 ปุ่ม Filter (ตัวกรอง) */
+        .filter-btn { padding: 8px 16px; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; background: white; color: #64748B; border: 1px solid #E2E8F0; white-space: nowrap; }
+        .filter-btn:hover { background: #F8FAFC; color: #0F172A; }
+        .filter-btn.active { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; font-weight: 700; box-shadow: 0 2px 6px rgba(37,99,235,0.1); }
+
+        /* 💡 ตาราง (Responsive) */
+        table { width: 100%; min-width: 1000px; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; border-bottom: 2px solid #F1F5F9; color: #64748B; font-size: 13px; white-space: nowrap; background: #F8FAFC; }
+        td { padding: 15px; border-bottom: 1px solid #F1F5F9; vertical-align: top; }
+
+        /* 💡 ฟอร์มเพิ่มโมเดล */
+        .up-box { border: 2px dashed #CBD5E1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #94A3B8; background: #F8FAFC; transition: 0.2s; overflow: hidden; position: relative; }
+        .up-box:hover { border-color: #3B82F6; background: #EFF6FF; color: #3B82F6; }
+        
+        /* 💡 CSS แก้บัคไอคอนซ้อนรูป */
+        .up-box.has-image svg, .up-box.has-image p, .up-box.has-image i { display: none !important; }
+        .color-upload-box.has-image svg, .color-upload-box.has-image i { display: none !important; }
+
+        /* ซ่อน Translate */
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, #goog-gt-tt, .goog-tooltip { display: none !important; }
+        .skiptranslate iframe { display: none !important; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2 cursor-pointer shrink-0">
+                    <div class="bg-primary p-2 rounded-lg text-white shadow-sm"><i data-lucide="box" class="w-5 h-5"></i></div>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">3D TECH <span class="text-sm font-medium text-slate-500 ml-1 border-l-2 border-slate-200 pl-2">Admin</span></span>
+                </div>
+                
+                <div class="hidden lg:flex items-center gap-8 h-full">
+                    <a class="nav-link h-full flex items-center active" data-target="overview" onclick="showSection('overview')">ภาพรวมออเดอร์</a>
+                    <a class="nav-link h-full flex items-center" data-target="add-model" onclick="showSection('add-model')">เพิ่มโมเดล</a>
+                    <a class="nav-link h-full flex items-center" data-target="edit-model" onclick="showSection('edit-model')">จัดการและแก้ไขโมเดล</a>
+                    <a class="nav-link h-full flex items-center" data-target="view-reviews" onclick="showSection('view-reviews')">ดูรีวิวจากลูกค้า</a>
+                </div>
+
+                <div class="flex items-center gap-3 sm:gap-6 shrink-0">
+                    <button onclick="toggleLanguage()" class="lang-btn group">
+                        <i data-lucide="globe" class="w-4 h-4 text-slate-400 group-hover:text-primary"></i>
+                        <span id="lang-display">TH</span>
+                    </button>
+                    <div class="hidden sm:flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
+                        <i data-lucide="user" class="w-4 h-4 text-primary"></i>
+                        <span id="adminName" class="text-sm font-bold text-slate-700">แอดมิน</span>
+                    </div>
+                    <button class="logout-btn border border-red-500 text-red-500 hover:bg-red-50 px-4 py-1.5 rounded-full font-bold text-sm transition">
+                        ออกจากระบบ
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lg:hidden flex overflow-x-auto px-4 py-3 bg-slate-50 border-t border-slate-200 gap-3 hide-scrollbar">
+            <button class="menu-item-mobile active px-4 py-2 rounded-full text-sm font-bold bg-primary text-white whitespace-nowrap transition shadow-md" data-target="overview" onclick="showSection('overview')">ภาพรวมออเดอร์</button>
+            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="add-model" onclick="showSection('add-model')">เพิ่มโมเดล</button>
+            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="edit-model" onclick="showSection('edit-model')">จัดการและแก้ไขโมเดล</button>
+            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="view-reviews" onclick="showSection('view-reviews')">ดูรีวิวจากลูกค้า</button>
+        </div>
+    </nav>
+
+    <main class="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-32 lg:pt-28 pb-16">
+        
+        <section id="overview" class="content-section">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:-translate-y-1 transition">
+                    <h3 class="text-xs font-bold text-slate-500 mb-2">คำสั่งซื้อทั้งหมด</h3>
+                    <p id="stTotal" class="text-3xl font-black text-blue-600">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:-translate-y-1 transition">
+                    <h3 class="text-xs font-bold text-amber-600 mb-2">รอการอนุมัติ (ใหม่)</h3>
+                    <p id="stNew" class="text-3xl font-black text-amber-500">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:-translate-y-1 transition">
+                    <h3 class="text-xs font-bold text-orange-600 mb-2">รอชำระเงิน</h3>
+                    <p id="stWaitPay" class="text-3xl font-black text-orange-500">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:-translate-y-1 transition">
+                    <h3 class="text-xs font-bold text-blue-600 mb-2">รอตรวจสลิป</h3>
+                    <p id="stWaitSlip" class="text-3xl font-black text-blue-500">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:-translate-y-1 transition">
+                    <h3 class="text-xs font-bold text-purple-600 mb-2">กำลังผลิต</h3>
+                    <p id="stProducing" class="text-3xl font-black text-purple-500">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:-translate-y-1 transition">
+                    <h3 class="text-xs font-bold text-emerald-600 mb-2">เสร็จสิ้นแล้ว</h3>
+                    <p id="stDone" class="text-3xl font-black text-emerald-500">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col p-5 md:p-8">
+                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 border-b border-slate-100 pb-6">
+                    <h3 class="text-xl font-black text-slate-900 m-0">รายการคำสั่งซื้อล่าสุด (แบ่งตามบิล)</h3>
+                    <div class="filter-container flex gap-2 flex-wrap m-0" id="orderFilters">
+                        <button onclick="setOrderFilter('all', this)" class="filter-btn active">ทั้งหมด</button>
+                        <button onclick="setOrderFilter('รอการอนุมัติ', this)" class="filter-btn">รอการอนุมัติ (ใหม่)</button>
+                        <button onclick="setOrderFilter('รอชำระเงิน', this)" class="filter-btn">รอชำระเงิน</button>
+                        <button onclick="setOrderFilter('รอตรวจสอบ', this)" class="filter-btn">รอตรวจสลิป</button>
+                        <button onclick="setOrderFilter('กำลังผลิต', this)" class="filter-btn">กำลังผลิต</button>
+                        <button onclick="setOrderFilter('เสร็จสิ้น', this)" class="filter-btn">เสร็จสิ้นแล้ว</button>
+                    </div>
+                </div>
+
+                <div class="w-full overflow-x-auto hide-scrollbar">
+                    <div id="orderBillsContainer" class="space-y-6">
+                        <div class="text-center py-10 text-slate-500">กำลังโหลดข้อมูล...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="add-model" class="content-section" style="display: none;">
+            <h2 class="text-2xl font-black text-slate-900 mb-6">เพิ่มโมเดล</h2>
+            <form id="addModelForm" class="flex flex-col lg:flex-row gap-8 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                
+                <div class="w-full lg:w-80 shrink-0">
+                    <label class="up-box main w-full aspect-square mb-4" id="mainPreviewBox">
+                        <i data-lucide="image-plus" class="w-10 h-10 mb-2"></i><p>อัปโหลดรูปหลัก</p>
+                        <input type="file" id="imgInput1" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'mainPreviewBox')">
+                    </label>
+                    <div class="flex gap-3">
+                        <label class="up-box sub flex-1 aspect-square" id="subPreview1">
+                            <i data-lucide="image-plus"></i><input type="file" id="imgInput2" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'subPreview1')">
+                        </label>
+                        <label class="up-box sub flex-1 aspect-square" id="subPreview2">
+                            <i data-lucide="image-plus"></i><input type="file" id="imgInput3" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'subPreview2')">
+                        </label>
+                        <label class="up-box sub flex-1 aspect-square" id="subPreview3">
+                            <i data-lucide="image-plus"></i><input type="file" id="imgInput4" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'subPreview3')">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex-1 space-y-5 w-full min-w-0">
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ชื่อโมเดล</label>
+                        <input type="text" id="modelName" class="flex-1 border border-slate-300 rounded-lg p-3 outline-none focus:border-primary" placeholder="Europalette Miniatur / 1:20 Pallet" required>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ประเภท</label>
+                        <select id="modelCategory" class="flex-1 border border-slate-300 rounded-lg p-3 outline-none focus:border-primary bg-white" required>
+                            <option value="" disabled selected>-- คลิกเพื่อเลือก --</option>
+                            <option value="กรวย">กรวย</option><option value="กระถางต้นไม้">กระถางต้นไม้</option>
+                            <option value="กล่อง">กล่องใส่ของ</option><option value="ของตกแต่ง">ของตกแต่ง</option>
+                            <option value="ของเล่น">ของเล่น</option><option value="พาเหลด">พาเหลด</option>
+                            <option value="พวงกุญแจ">พวงกุญแจ</option><option value="โมเดล">โมเดล / ฟิกเกอร์</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ราคาสินค้า</label>
+                        <div class="flex items-stretch border border-slate-300 rounded-lg overflow-hidden w-full sm:max-w-[200px]">
+                            <span class="bg-slate-50 px-4 py-3 border-r border-slate-300 font-bold text-slate-500">฿</span>
+                            <input type="number" id="modelPrice" class="flex-1 p-3 outline-none w-full" placeholder="290" required>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ตัวเลือกสี</label>
+                        <div class="flex-1 flex flex-col gap-3 min-w-0">
+                            <div id="color-container" class="space-y-3">
+                                <div class="flex flex-wrap sm:flex-nowrap items-stretch gap-2 w-full color-row-group">
+                                    <div class="flex flex-1 border border-slate-300 rounded-lg overflow-hidden bg-white w-full sm:max-w-[450px]">
+                                        <label class="color-upload-box w-12 bg-slate-50 border-r border-slate-300 flex items-center justify-center relative shrink-0 overflow-hidden group hover:bg-slate-100 cursor-pointer">
+                                            <input type="file" accept="image/*" class="color-img-input absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewColorImage(this)">
+                                            <i data-lucide="image" class="icon-placeholder w-5 h-5 text-slate-400 group-hover:text-primary transition-colors"></i>
+                                            <img src="" class="color-img-preview absolute inset-0 w-full h-full object-cover hidden pointer-events-none">
+                                        </label>
+                                        <input type="text" class="color-name-input flex-1 p-3 border-none outline-none min-w-[80px]" placeholder="ชื่อสี (ขาวมุกอาร์กติก)">
+                                        <input type="number" class="color-price-input w-28 sm:w-32 p-3 border-none border-l border-slate-300 outline-none text-center shrink-0" placeholder="+ราคา (4)">
+                                    </div>
+                                    <div class="flex gap-2 shrink-0">
+                                        <button type="button" onclick="addColorField()" class="w-[50px] h-[50px] bg-white border border-slate-300 rounded-lg flex items-center justify-center text-primary hover:bg-blue-50 transition"><i data-lucide="plus"></i></button>
+                                        <button type="button" class="w-[50px] h-[50px] bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-300 cursor-not-allowed"><i data-lucide="trash-2"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">วัสดุ</label>
+                        <div class="flex-1 flex flex-col gap-3">
+                            <div class="flex items-stretch border border-slate-300 rounded-lg overflow-hidden w-full sm:max-w-[300px]">
+                                <span class="bg-slate-50 w-20 flex justify-center items-center border-r border-slate-300 font-bold">PLA</span>
+                                <input type="number" id="pricePLA" value="0" class="flex-1 p-3 outline-none w-full">
+                            </div>
+                            <div class="flex items-stretch border border-slate-300 rounded-lg overflow-hidden w-full sm:max-w-[300px]">
+                                <span class="bg-slate-50 w-20 flex justify-center items-center border-r border-slate-300 font-bold">PETG</span>
+                                <input type="number" id="pricePETG" value="50" class="flex-1 p-3 outline-none w-full">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ขนาด (กxยxส)</label>
+                        <div class="flex-1 flex items-center gap-2 flex-wrap">
+                            <div class="flex flex-1 min-w-[90px] border border-slate-300 rounded-lg overflow-hidden bg-white"><input type="number" id="dimW" min="0" placeholder="กว้าง (7.5)" class="w-full p-3 text-center outline-none"><span class="bg-slate-50 px-3 py-3 border-l border-slate-300 text-xs font-bold text-slate-500">cm</span></div>
+                            <span class="font-bold text-slate-300">X</span>
+                            <div class="flex flex-1 min-w-[90px] border border-slate-300 rounded-lg overflow-hidden bg-white"><input type="number" id="dimL" min="0" placeholder="ยาว (7.5)" class="w-full p-3 text-center outline-none"><span class="bg-slate-50 px-3 py-3 border-l border-slate-300 text-xs font-bold text-slate-500">cm</span></div>
+                            <span class="font-bold text-slate-300">X</span>
+                            <div class="flex flex-1 min-w-[90px] border border-slate-300 rounded-lg overflow-hidden bg-white"><input type="number" id="dimH" min="0" placeholder="สูง (16.5)" class="w-full p-3 text-center outline-none"><span class="bg-slate-50 px-3 py-3 border-l border-slate-300 text-xs font-bold text-slate-500">cm</span></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="w-full sm:w-auto bg-primary hover:bg-primaryHover text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/30">
+                            <i data-lucide="save"></i> ยืนยันการเพิ่มโมเดล
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section id="edit-model" class="content-section" style="display: none;">
+            <h2 class="text-2xl font-black text-slate-900 mb-6">จัดการและแก้ไขโมเดล</h2>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6 overflow-x-auto hide-scrollbar">
+                <div id="modelListContainer" class="min-w-[800px]">
+                    <p class="text-center py-10 text-slate-500">กำลังโหลดข้อมูล...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-reviews" class="content-section" style="display: none;">
+            <h2 class="text-2xl font-black text-slate-900 mb-6">รีวิวจากลูกค้า</h2>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6 overflow-x-auto hide-scrollbar">
+                <div id="reviewsListContainer" class="min-w-[800px]">
+                    <p class="text-center py-10 text-slate-500">กำลังโหลดรีวิว...</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="slipModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
+                <h3 class="text-xl font-black text-slate-900">ตรวจสอบการชำระเงิน</h3>
+                <button onclick="document.getElementById('slipModal').style.display='none'" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex flex-col sm:flex-row gap-6">
+                <div class="flex-1 bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
+                    <img id="slipImagePreview" src="" class="max-w-full max-h-[350px] object-contain rounded-xl shadow-sm bg-white mb-4">
+                    <a id="slipDownloadLink" href="#" target="_blank" class="text-primary font-bold text-sm hover:underline"><i data-lucide="external-link" class="w-4 h-4 inline mb-0.5"></i> เปิดรูปต้นฉบับเต็มจอ</a>
+                </div>
+                <div class="flex-1 bg-white p-5 rounded-2xl border border-slate-200">
+                    <h4 class="font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4">รายละเอียดที่ลูกค้าแจ้งโอน</h4>
+                    <div class="space-y-3">
+                        <div><span class="text-xs text-slate-500 block">ยอดเงินที่ต้องชำระ:</span><span id="slipModalAmount" class="text-xl font-black text-primary">-</span></div>
+                        <div><span class="text-xs text-slate-500 block mb-1">ช่องทางการโอน:</span><span id="slipModalMethod" class="text-sm font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-md">-</span></div>
+                        <div><span class="text-xs text-slate-500 block">ธนาคารลูกค้า:</span><span id="slipModalBank" class="text-sm font-bold text-slate-900">-</span></div>
+                        <div><span class="text-xs text-slate-500 block">เลขบัญชีลูกค้า / เบอร์:</span><span id="slipModalAccount" class="text-base font-black text-amber-600">-</span></div>
+                        <div><span class="text-xs text-slate-500 block">วัน-เวลาที่โอน:</span><span id="slipModalDateTime" class="text-sm font-bold text-slate-900">-</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModalWrapper" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl relative p-6 md:p-8">
+            <button onclick="closeEditModal()" class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200"><i data-lucide="x"></i></button>
+            <h2 class="text-2xl font-black text-slate-900 mb-6">แก้ไขข้อมูลโมเดล</h2>
+            
+            <form id="editModelFormDynamic" class="flex flex-col lg:flex-row gap-8">
+                <input type="hidden" id="editModelId">
+                
+                <div class="w-full lg:w-80 shrink-0">
+                    <label class="up-box main w-full aspect-square mb-4" id="editPreviewBox1">
+                        <i data-lucide="image-plus" class="w-10 h-10 mb-2"></i><p>อัปโหลดรูปหลัก</p>
+                        <input type="file" id="editImgInput1" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'editPreviewBox1')">
+                        <input type="hidden" id="editOldImg1">
+                    </label>
+                    <div class="flex gap-3">
+                        <label class="up-box sub flex-1 aspect-square" id="editPreviewBox2">
+                            <i data-lucide="image-plus"></i>
+                            <input type="file" id="editImgInput2" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'editPreviewBox2')">
+                            <input type="hidden" id="editOldImg2">
+                        </label>
+                        <label class="up-box sub flex-1 aspect-square" id="editPreviewBox3">
+                            <i data-lucide="image-plus"></i>
+                            <input type="file" id="editImgInput3" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'editPreviewBox3')">
+                            <input type="hidden" id="editOldImg3">
+                        </label>
+                        <label class="up-box sub flex-1 aspect-square" id="editPreviewBox4">
+                            <i data-lucide="image-plus"></i>
+                            <input type="file" id="editImgInput4" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'editPreviewBox4')">
+                            <input type="hidden" id="editOldImg4">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex-1 space-y-5 w-full min-w-0">
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                        <label class="w-full sm:w-28 font-bold text-slate-900 pt-2 shrink-0">ชื่อโมเดล</label>
+                        <input type="text" id="editModelName" class="flex-1 border border-slate-300 rounded-lg p-3 outline-none" required>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                        <label class="w-full sm:w-28 font-bold text-slate-900 pt-2 shrink-0">ประเภท</label>
+                        <select id="editModelCategory" class="flex-1 border border-slate-300 rounded-lg p-3 outline-none bg-white" required>
+                            <option value="กรวย">กรวย</option><option value="กระถางต้นไม้">กระถางต้นไม้</option>
+                            <option value="กล่อง">กล่องใส่ของ</option><option value="ของตกแต่ง">ของตกแต่ง</option>
+                            <option value="ของเล่น">ของเล่น</option><option value="พาเหลด">พาเหลด</option>
+                            <option value="พวงกุญแจ">พวงกุญแจ</option><option value="โมเดล">โมเดล / ฟิกเกอร์</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                        <label class="w-full sm:w-28 font-bold text-slate-900 pt-2 shrink-0">ราคาสินค้า</label>
+                        <div class="flex items-stretch border border-slate-300 rounded-lg overflow-hidden w-full sm:max-w-[200px]">
+                            <span class="bg-slate-50 px-4 py-3 border-r border-slate-300 font-bold text-slate-500">฿</span>
+                            <input type="number" id="editModelPrice" class="flex-1 p-3 outline-none w-full" required>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                        <label class="w-full sm:w-28 font-bold text-slate-900 pt-2 shrink-0">ตัวเลือกสี</label>
+                        <div class="flex-1 flex flex-col gap-3 min-w-0">
+                            <div id="editColorContainer" class="space-y-3"></div>
+                            <button type="button" onclick="addEditColorField()" class="text-primary font-bold text-sm w-max hover:underline flex items-center gap-1"><i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มตัวเลือกสี</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                        <label class="w-full sm:w-28 font-bold text-slate-900 pt-2 shrink-0">วัสดุ</label>
+                        <div class="flex-1 flex flex-col gap-3">
+                            <div class="flex items-stretch border border-slate-300 rounded-lg overflow-hidden w-full sm:max-w-[250px]"><span class="bg-slate-50 w-20 flex justify-center items-center border-r border-slate-300 font-bold text-sm">PLA</span><input type="number" id="editPricePLA" class="flex-1 p-3 outline-none w-full"></div>
+                            <div class="flex items-stretch border border-slate-300 rounded-lg overflow-hidden w-full sm:max-w-[250px]"><span class="bg-slate-50 w-20 flex justify-center items-center border-r border-slate-300 font-bold text-sm">PETG</span><input type="number" id="editPricePETG" class="flex-1 p-3 outline-none w-full"></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                        <label class="w-full sm:w-28 font-bold text-slate-900 pt-2 shrink-0">ขนาด</label>
+                        <div class="flex-1 flex items-center gap-2 flex-wrap">
+                            <div class="flex flex-1 min-w-[80px] border border-slate-300 rounded-lg overflow-hidden bg-white"><input type="number" id="editDimW" min="0" placeholder="กว้าง" class="w-full p-3 text-center outline-none"><span class="bg-slate-50 px-2 py-3 border-l border-slate-300 text-xs font-bold text-slate-500">cm</span></div>
+                            <span class="font-bold text-slate-300">X</span>
+                            <div class="flex flex-1 min-w-[80px] border border-slate-300 rounded-lg overflow-hidden bg-white"><input type="number" id="editDimL" min="0" placeholder="ยาว" class="w-full p-3 text-center outline-none"><span class="bg-slate-50 px-2 py-3 border-l border-slate-300 text-xs font-bold text-slate-500">cm</span></div>
+                            <span class="font-bold text-slate-300">X</span>
+                            <div class="flex flex-1 min-w-[80px] border border-slate-300 rounded-lg overflow-hidden bg-white"><input type="number" id="editDimH" min="0" placeholder="สูง" class="w-full p-3 text-center outline-none"><span class="bg-slate-50 px-2 py-3 border-l border-slate-300 text-xs font-bold text-slate-500">cm</span></div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-4 border-t border-slate-100">
+                        <button type="submit" class="w-full sm:w-auto bg-primary hover:bg-primaryHover text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"><i data-lucide="save" class="w-5 h-5"></i> ยืนยันการแก้ไข</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="google_translate_element" style="display:none;"></div>
+    <script type="text/javascript">
+        function setLangCookie(lang) { document.cookie = "googtrans=/th/" + lang + "; path=/"; localStorage.setItem('my_site_lang', lang); }
+        function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'th', includedLanguages: 'th,en', autoDisplay: false}, 'google_translate_element'); }
+        function toggleLanguage() { setLangCookie(localStorage.getItem('my_site_lang') === 'th' ? 'en' : 'th'); window.location.reload(); }
+        document.addEventListener('DOMContentLoaded', () => {
+            let savedLang = localStorage.getItem('my_site_lang') || 'th';
+            let langDisplay = document.getElementById('lang-display');
+            if (langDisplay) langDisplay.innerText = savedLang.toUpperCase();
+        });
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="admin.js?v=30"></script>
+</body>
+</html>
