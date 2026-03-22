@@ -10,7 +10,8 @@ const db = createClient(supabaseUrl, supabaseKey);
 let globalBillOrderIds = [];
 let globalDepositAmount = 0; 
 let globalAddresses = []; 
-let currentEditingOrderIds = []; // 💡 ตัวแปรบอกว่ากำลังเปลี่ยนที่อยู่ของบิลไหน
+let currentEditingOrderIds = []; // ตัวแปรบอกว่ากำลังเปลี่ยนที่อยู่ของบิลไหน
+window.globalOrderItems = []; // 💡 ตัวแปรใหม่สำหรับเก็บยอดมัดจำแยกรายชิ้น
 
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = localStorage.getItem('user_id');
@@ -86,7 +87,7 @@ async function loadBillDetail(orderIdsArray, userId) {
             return;
         }
 
-        // 💡 จัดกลุ่มตามบิล (เวลาที่สั่งซื้อ)
+        // จัดกลุ่มตามบิล (เวลาที่สั่งซื้อ)
         const groupedOrders = {};
         billItems.forEach(item => {
             const timeKey = item.created_at.substring(0, 16);
@@ -108,8 +109,9 @@ async function loadBillDetail(orderIdsArray, userId) {
         let totalBillAmount = 0;
         let itemsHTML = '';
         globalBillOrderIds = [];
+        window.globalOrderItems = []; // 💡 รีเซ็ตค่าใหม่ทุกครั้งที่โหลด
 
-        // 💡 วาดการ์ดแต่ละบิลให้มีที่อยู่ของตัวเอง
+        // วาดการ์ดแต่ละบิลให้มีที่อยู่ของตัวเอง
         Object.values(groupedOrders).forEach((group, index) => {
             totalBillAmount += group.totalPrice;
             globalBillOrderIds.push(...group.allOrderIds);
@@ -118,6 +120,12 @@ async function loadBillDetail(orderIdsArray, userId) {
             
             let groupItemsHTML = '';
             group.items.forEach(item => {
+                // 💡 เก็บข้อมูลมัดจำแยกรายชิ้น (50% ของราคาสินค้านั้นๆ)
+                window.globalOrderItems.push({
+                    order_id: item.order_id,
+                    item_deposit: Number(item.order_total_price) * 0.5
+                });
+
                 let modelData = Array.isArray(item.model) ? item.model[0] : (item.model || {});
                 let modelName = modelData.model_name || 'โมเดล 3D';
                 let imgUrl = getModelImageUrl(modelData.model_image_1);
@@ -192,7 +200,7 @@ async function loadBillDetail(orderIdsArray, userId) {
     }
 }
 
-// 💡 ฟังก์ชันสร้าง HTML ของที่อยู่สำหรับแต่ละบิล
+// ฟังก์ชันสร้าง HTML ของที่อยู่สำหรับแต่ละบิล
 function renderAddressBlock(group) {
     let addressHTML = '<span class="text-red-500 text-xs font-bold">ไม่พบข้อมูลที่อยู่จัดส่ง</span>';
     
@@ -242,7 +250,7 @@ function renderAddressBlock(group) {
 // 3. Address Selection Modal Logic
 // ===========================================
 window.openAddressModal = function(orderIds) {
-    currentEditingOrderIds = orderIds; // จดจำไว้ว่ากำลังเปลี่ยนที่อยู่ให้บิลไหน
+    currentEditingOrderIds = orderIds; 
     const modal = document.getElementById('addressModal');
     const modalBox = document.getElementById('addressModalBox');
     
@@ -294,7 +302,6 @@ async function loadAddresses() {
             let defaultBadge = addr.isDefault ? `<span class="bg-blue-50 text-primary text-[10px] font-bold px-2 py-0.5 rounded-md border border-blue-100">ค่าเริ่มต้น</span>` : '';
             let addrTitle = addr.title || `ที่อยู่ ${idx + 1}`;
             
-            // ปกติจะไม่มีการเช็ค isSelected แล้ว เพราะเปิดจากคนละบิล
             const borderClass = 'border-slate-200 bg-white hover:border-primary/50';
             const checkIcon = `<div class="w-5 h-5 rounded-full border border-slate-300 group-hover:border-primary/50 transition-colors"></div>`;
 
@@ -341,14 +348,12 @@ window.selectAddress = async function(idx) {
     document.getElementById('display-items').innerHTML = '<p class="text-sm text-slate-400 animate-pulse text-center py-10">กำลังอัปเดตที่อยู่...</p>';
 
     try {
-        // อัปเดตเฉพาะบิลที่เลือก
         const { error } = await db.from('order_model')
             .update({ shipping_address: JSON.stringify(selected) })
             .in('order_id', currentEditingOrderIds);
         
         if (error) throw error;
         
-        // โหลดข้อมูลมาระบายบนหน้าจอใหม่ทั้งหมดเพื่อให้ UI เป็นปัจจุบัน
         const urlParams = new URLSearchParams(window.location.search);
         const billsParam = urlParams.get('bills') || urlParams.get('bill_id'); 
         const orderIdsArray = billsParam.split(',');
@@ -421,9 +426,10 @@ if(paymentForm) {
             const { error: uploadErr } = await db.storage.from('payment_slips').upload(fileName, file);
             if (uploadErr) throw uploadErr;
 
-            const depositRecords = globalBillOrderIds.map(oId => ({
-                order_id: oId,
-                payment_amount: globalDepositAmount, 
+            // 💡 ใช้งานตัวแปร window.globalOrderItems เพื่อบันทึกยอดมัดจำแยกตามบิล
+            const depositRecords = window.globalOrderItems.map(item => ({
+                order_id: item.order_id,
+                payment_amount: item.item_deposit, // <-- ยอด 50% ของรายการนี้
                 payment_slip: fileName,
                 transfer_date: document.getElementById('pay-date').value,
                 transfer_time: document.getElementById('pay-time').value,
@@ -434,6 +440,7 @@ if(paymentForm) {
                 payment_status: 'รอตรวจสอบ'
             }));
 
+            // 💡 บันทึกเข้าฐานข้อมูล
             await db.from('deposit_payment').insert(depositRecords);
             await db.from('order_model').update({ order_status: 'รอตรวจสอบ' }).in('order_id', globalBillOrderIds);
 
