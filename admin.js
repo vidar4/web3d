@@ -116,13 +116,15 @@ async function loadOrderList() {
         if (error) throw error;
         allOrdersData = orders;
         
+        // 💡 อัปเดตสถิติทั้งหมด
         document.getElementById('stTotal').innerText = orders.length;
         document.getElementById('stNew').innerText = orders.filter(o => o.order_status === 'รอการอนุมัติ' || o.order_status === 'pending').length;
         document.getElementById('stWaitPay').innerText = orders.filter(o => o.order_status === 'รอชำระเงิน' || o.order_status === 'รอการชำระเงิน').length;
         document.getElementById('stWaitSlip').innerText = orders.filter(o => o.order_status === 'รอตรวจสอบ').length;
         document.getElementById('stProducing').innerText = orders.filter(o => o.order_status === 'กำลังผลิต').length;
-        
-        document.getElementById('stDone').innerText = orders.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว') || o.order_status.includes('ยกเลิก')).length; // 💡 นับยอดบิลที่ยกเลิกไปด้วยในช่องสุดท้าย
+        document.getElementById('stDone').innerText = orders.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว')).length;
+        // 💡 เพิ่มสถิติ ยกเลิกแล้ว
+        document.getElementById('stCancelled').innerText = orders.filter(o => o.order_status.includes('ยกเลิก') || o.order_status === 'ไม่อนุมัติ').length;
 
         renderOrderTable();
     } catch (err) {
@@ -136,8 +138,13 @@ function renderOrderTable() {
     let filteredOrders = allOrdersData;
     if (window.currentOrderFilter !== 'all') {
         if (window.currentOrderFilter === 'เสร็จสิ้น') {
-            filteredOrders = allOrdersData.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว') || o.order_status.includes('ยกเลิก')); // 💡 เพิ่มสถานะยกเลิกใน Filter ท้ายสุด
-        } else {
+            filteredOrders = allOrdersData.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว'));
+        } 
+        else if (window.currentOrderFilter === 'ยกเลิกคำสั่งซื้อ') {
+            // 💡 Filter กลุ่มยกเลิก (รวมไม่อนุมัติ)
+            filteredOrders = allOrdersData.filter(o => o.order_status.includes('ยกเลิก') || o.order_status === 'ไม่อนุมัติ');
+        } 
+        else {
             filteredOrders = allOrdersData.filter(o => o.order_status === window.currentOrderFilter || (window.currentOrderFilter==='รอการอนุมัติ' && o.order_status==='pending') || (window.currentOrderFilter==='รอชำระเงิน' && o.order_status==='รอการชำระเงิน'));
         }
     }
@@ -305,7 +312,7 @@ function renderOrderTable() {
         if (group.total_price === 0 && isNeedsEvaluation) totalDisplay = `<span style="font-size:16px; color:#D97706;">รอประเมินราคา</span>`;
 
         html += `
-            <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${group.order_status.includes('ยกเลิก') ? 'opacity: 0.7; filter: grayscale(1);' : ''}">
+            <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${group.order_status.includes('ยกเลิก') || group.order_status === 'ไม่อนุมัติ' ? 'opacity: 0.7; filter: grayscale(1);' : ''}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
                     <div>
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
@@ -464,7 +471,7 @@ window.saveEvalPrice = async function(items) {
 };
 
 // =========================================================
-// 5. Model Management 
+// 5. Model Management (ดึงมาจากไฟล์เดิมได้เลย)
 // =========================================================
 
 window.previewImage = function(input, boxId) {
