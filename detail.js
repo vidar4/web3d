@@ -12,6 +12,7 @@ let selectedSize = '100%';
 let quantity = 1;
 let extraColorPrice = 0;
 let extraMaterialPrice = 0;
+let sizeMultiplier = 1.0; 
 
 document.addEventListener('DOMContentLoaded', async () => {
     checkUser();
@@ -142,7 +143,6 @@ function renderOptions(containerId, data, type) {
             const btn = document.createElement('button');
             const isActive = index === 0;
             
-            // 💡 อัปเดต baseClass เพื่อให้ปุ่มขยายเต็มช่อง Grid
             const baseClass = "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-[13px] md:text-sm font-bold text-left w-full";
             const unselected = "border-slate-200 text-slate-600 bg-white hover:border-primary hover:text-primary hover:bg-blue-50";
             const selected = "border-primary bg-blue-50 text-primary shadow-[0_2px_10px_rgba(37,99,235,0.15)] ring-1 ring-primary";
@@ -206,15 +206,25 @@ function renderSizeOptions(model) {
             ? `<span class="font-normal opacity-75">ก.</span> <span class="font-black text-[13px]">${formatNum(w)}</span> <span class="mx-1 text-[10px] opacity-40">✖</span> <span class="font-normal opacity-75">ย.</span> <span class="font-black text-[13px]">${formatNum(l)}</span> <span class="mx-1 text-[10px] opacity-40">✖</span> <span class="font-normal opacity-75">ส.</span> <span class="font-black text-[13px]">${formatNum(h)}</span> <span class="font-normal opacity-75 ml-0.5">cm</span>` 
             : 'ขนาดมาตรฐาน';
 
-        const baseClass = "size-btn group flex-1 min-w-[130px] flex flex-col items-center justify-center py-3 px-2 rounded-xl border transition-all cursor-pointer shadow-sm relative overflow-hidden";
+        const baseClass = "size-btn group flex-1 min-w-[130px] flex flex-col items-center justify-center py-4 px-2 rounded-xl border transition-all cursor-pointer shadow-sm relative overflow-hidden";
         const inactiveClass = "border-slate-300 bg-white hover:border-primary hover:bg-blue-50";
         const activeClass = "border-2 border-primary bg-primary shadow-[0_4px_12px_rgba(37,99,235,0.2)]";
         
         const mainTextCol = s.active ? 'text-white' : 'text-slate-600 group-hover:text-primary';
         const subTextCol = s.active ? 'text-blue-50' : 'text-slate-500 group-hover:text-blue-600';
 
+        // 💡 แก้ไขป้ายราคาให้เป็น Badge สีเด่นๆ ชัดเจน
+        let priceTag = '';
+        if (s.ratio !== 1.0) {
+            const tagStyle = s.active 
+                ? 'bg-white/20 text-white' 
+                : 'bg-amber-100 text-amber-700 border border-amber-200';
+            priceTag = `<span class="price-tag absolute top-2 right-2 text-[10px] font-black px-2 py-0.5 rounded-md ${tagStyle}">ราคา x${s.ratio}</span>`;
+        }
+
         html += `
-            <button type="button" onclick="selectSize('${s.label}', this)" class="${baseClass} ${s.active ? activeClass : inactiveClass}">
+            <button type="button" onclick="selectSize('${s.label}', ${s.ratio}, this)" class="${baseClass} ${s.active ? activeClass : inactiveClass}">
+                ${priceTag}
                 <span class="size-main-text font-black text-sm mb-1 transition-colors ${mainTextCol}">${s.label}</span>
                 <span class="size-sub-text text-xs tracking-wide mt-0.5 transition-colors ${subTextCol}">${dimensionText}</span>
             </button>
@@ -223,31 +233,51 @@ function renderSizeOptions(model) {
 
     sizeContainer.innerHTML = html;
     selectedSize = '100%'; 
+    sizeMultiplier = 1.0;
 }
 
-window.selectSize = (label, el) => {
+window.selectSize = (label, ratio, el) => {
     if (window.currentSizeMode === 'custom') {
         if(typeof window.toggleSizeMode === 'function') window.toggleSizeMode('standard');
     }
     selectedSize = label;
+    sizeMultiplier = ratio;
 
-    const baseClass = "size-btn group flex-1 min-w-[130px] flex flex-col items-center justify-center py-3 px-2 rounded-xl border transition-all cursor-pointer shadow-sm relative overflow-hidden";
+    const baseClass = "size-btn group flex-1 min-w-[130px] flex flex-col items-center justify-center py-4 px-2 rounded-xl border transition-all cursor-pointer shadow-sm relative overflow-hidden";
     const inactiveClass = "border-slate-300 bg-white hover:border-primary hover:bg-blue-50";
     const activeClass = "border-2 border-primary bg-primary shadow-[0_4px_12px_rgba(37,99,235,0.2)]";
     
+    // รีเซ็ตปุ่มทั้งหมด
     document.querySelectorAll('.size-btn').forEach(b => {
         b.className = `${baseClass} ${inactiveClass}`;
         const mainText = b.querySelector('.size-main-text');
         if(mainText) mainText.className = `size-main-text font-black text-sm mb-1 transition-colors text-slate-600 group-hover:text-primary`;
         const subText = b.querySelector('.size-sub-text');
         if(subText) subText.className = `size-sub-text text-xs tracking-wide mt-0.5 transition-colors text-slate-500 group-hover:text-blue-600`;
+        
+        // 💡 รีเซ็ตสีป้ายราคา
+        const priceTag = b.querySelector('.price-tag');
+        if(priceTag) priceTag.className = `price-tag absolute top-2 right-2 text-[10px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 border border-amber-200`;
     });
     
+    // ตั้งค่าปุ่มที่ถูกเลือก
     el.className = `${baseClass} ${activeClass}`;
     const activeMainText = el.querySelector('.size-main-text');
     if(activeMainText) activeMainText.className = `size-main-text font-black text-sm mb-1 transition-colors text-white`;
     const activeSubText = el.querySelector('.size-sub-text');
     if(activeSubText) activeSubText.className = `size-sub-text text-xs tracking-wide mt-0.5 transition-colors text-blue-50`;
+    
+    // 💡 ตั้งค่าสีป้ายราคาของปุ่มที่ถูกเลือก
+    const activePriceTag = el.querySelector('.price-tag');
+    if(activePriceTag) activePriceTag.className = `price-tag absolute top-2 right-2 text-[10px] font-black px-2 py-0.5 rounded-md bg-white/20 text-white`;
+
+    updateTotalPrice(); 
+};
+
+const originalToggleSizeMode = window.toggleSizeMode;
+window.toggleSizeMode = function(mode) {
+    if (originalToggleSizeMode) originalToggleSizeMode(mode);
+    updateTotalPrice();
 };
 
 // =========================================================
@@ -261,9 +291,24 @@ window.updateQty = (change) => {
 
 function updateTotalPrice() {
     if(!currentModel) return;
+    
+    const wrapperEl = document.getElementById('detail-price-wrapper');
+    const evalEl = document.getElementById('detail-price-eval');
+    
+    if (window.currentSizeMode === 'custom') {
+        if(wrapperEl) wrapperEl.style.display = 'none';
+        if(evalEl) evalEl.style.display = 'block';
+        return;
+    }
+
+    if(wrapperEl) wrapperEl.style.display = 'flex';
+    if(evalEl) evalEl.style.display = 'none';
+
     const basePrice = Number(currentModel.model_price) || 0;
+    const scaledBasePrice = basePrice * sizeMultiplier; 
+    
     const totalOptionsPrice = extraColorPrice + extraMaterialPrice;
-    const unitPrice = basePrice + totalOptionsPrice;
+    const unitPrice = scaledBasePrice + totalOptionsPrice;
     const finalTotal = unitPrice * quantity;
     
     let priceHtml = `
@@ -272,22 +317,30 @@ function updateTotalPrice() {
         </div>
     `;
 
-    if (totalOptionsPrice > 0 || quantity > 1) {
+    if (totalOptionsPrice > 0 || quantity > 1 || sizeMultiplier !== 1.0) {
         priceHtml += `
             <div class="mt-1 text-sm font-medium text-slate-500 bg-slate-50 p-2 rounded-lg inline-block border border-slate-100">
-                ราคาเริ่มต้น <span class="text-slate-700">฿${basePrice.toLocaleString()}</span> 
+                ราคาขนาด ${selectedSize} <span class="text-slate-700">฿${scaledBasePrice.toLocaleString()}</span> 
         `;
         if (totalOptionsPrice > 0) priceHtml += ` + ออปชั่น <span class="text-amber-500">฿${totalOptionsPrice.toLocaleString()}</span>`;
         if (quantity > 1) priceHtml += ` <span class="mx-1 text-slate-300">|</span> <span class="text-primary">${quantity} ชิ้น</span>`;
         priceHtml += `</div>`;
     }
-    document.getElementById('detail-price').innerHTML = priceHtml;
+    
+    const priceContainer = document.getElementById('detail-price');
+    if(priceContainer) {
+        priceContainer.innerHTML = priceHtml;
+        const unit = document.getElementById('detail-price-unit');
+        if(unit) unit.style.display = 'none'; 
+    }
 }
 
 function addToCart() {
     if(!currentModel) return;
 
     let finalSizeString = selectedSize;
+    let finalPrice = 0;
+    let isWaitEval = false;
 
     if (window.currentSizeMode === 'custom') {
         const cw = document.getElementById('custom-w').value;
@@ -299,36 +352,38 @@ function addToCart() {
             return;
         }
         finalSizeString = `กำหนดเอง (ก.${cw} × ย.${cl} × ส.${ch} cm)`;
+        finalPrice = 0; 
+        isWaitEval = true;
     } else {
         const baseW = Number(currentModel.model_width) || 0;
         const baseL = Number(currentModel.model_length) || 0;
         const baseH = Number(currentModel.model_height) || 0;
         
-        let ratio = 1.0;
-        if (selectedSize === '75%') ratio = 0.75;
-        if (selectedSize === '200%') ratio = 2.00;
-
         if (baseW > 0) {
-            const w = Number((baseW * ratio).toFixed(1));
-            const l = Number((baseL * ratio).toFixed(1));
-            const h = Number((baseH * ratio).toFixed(1));
+            const w = Number((baseW * sizeMultiplier).toFixed(1));
+            const l = Number((baseL * sizeMultiplier).toFixed(1));
+            const h = Number((baseH * sizeMultiplier).toFixed(1));
             finalSizeString = `ขนาด ${selectedSize} (ก.${w} × ย.${l} × ส.${h} cm)`;
         } else {
             finalSizeString = `ขนาด ${selectedSize}`;
         }
+        
+        const scaledBasePrice = (Number(currentModel.model_price) || 0) * sizeMultiplier;
+        finalPrice = (scaledBasePrice + extraColorPrice + extraMaterialPrice) * quantity;
     }
 
     const item = {
         cart_id: Date.now(),
         model_id: currentModel.model_id,
-        name: currentModel.model_name,
-        price: (Number(currentModel.model_price) + extraColorPrice + extraMaterialPrice),
+        name: currentModel.model_name + (isWaitEval ? " (รอประเมินราคา)" : ""),
+        price: isWaitEval ? 0 : (finalPrice / quantity),
         color: selectedColor || 'มาตรฐาน', 
         material: selectedMaterial || 'PLA', 
         size: finalSizeString,
         qty: quantity,
-        total: (Number(currentModel.model_price) + extraColorPrice + extraMaterialPrice) * quantity,
-        image: document.getElementById('detail-main-image').src
+        total: finalPrice,
+        image: document.getElementById('detail-main-image').src,
+        isWaitEval: isWaitEval 
     };
     
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -363,23 +418,19 @@ function updateCartBadge() {
 }
 
 // =========================================================
-// 💡 5. ระบบรีวิว (สร้างดาวแบบจุดทศนิยม 100%)
+// 5. ระบบรีวิว
 // =========================================================
 
 function getStarsHtml(rating, sizeClass = "w-4 h-4") {
-    // จำกัดค่าคะแนนให้อยู่ระหว่าง 0 ถึง 5 แล้วแปลงเป็นเปอร์เซ็นต์
     const percent = Math.min(Math.max((rating / 5) * 100, 0), 100);
-    
     let bgStars = '';
     let fgStars = '';
     
-    // สร้างโครงสร้างดาวเปล่า (สีเทา) และดาวเต็ม (สีทอง) 5 ดวง
     for(let i=0; i<5; i++) {
         bgStars += `<svg class="${sizeClass} text-slate-200 fill-slate-200 drop-shadow-sm shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
         fgStars += `<svg class="${sizeClass} text-amber-400 fill-amber-400 drop-shadow-sm shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
     }
     
-    // ใช้เทคนิคกล่องซ้อนกันแล้วจำกัดความกว้างตาม %
     return `
     <div class="relative inline-flex items-center" title="${rating} ดาว">
         <div class="flex gap-1">${bgStars}</div>
@@ -423,11 +474,9 @@ function renderReviews(reviews) {
         return;
     }
 
-    // 💡 คำนวณดาวเฉลี่ย
     const totalRating = reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0);
     const avgRating = (totalRating / reviews.length).toFixed(1);
 
-    // 💡 แสดงคะแนนเฉลี่ยพร้อมดาวแบบ Overlay
     summary.innerHTML = `
         <div class="flex items-center gap-3 justify-start md:justify-end">
             <span class="text-5xl font-black text-slate-900 tracking-tighter">${avgRating}</span>
@@ -464,7 +513,6 @@ function renderReviews(reviews) {
             }
         }
 
-        // 💡 เรียกใช้ฟังก์ชันดาว Overlay สำหรับแต่ละคอมเมนต์
         html += `
             <div class="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
                 <div class="flex items-start justify-between mb-3">
