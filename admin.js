@@ -122,7 +122,6 @@ async function loadOrderList() {
         document.getElementById('stWaitSlip').innerText = orders.filter(o => o.order_status === 'รอตรวจสอบ').length;
         document.getElementById('stProducing').innerText = orders.filter(o => o.order_status === 'กำลังผลิต').length;
         
-        // 💡 อัปเดต Filter ตัวนับสถิติ (รองรับข้อความ จัดส่งแล้ว(...) ที่มีเลขพัสดุด้วย)
         document.getElementById('stDone').innerText = orders.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว')).length;
 
         renderOrderTable();
@@ -137,7 +136,6 @@ function renderOrderTable() {
     let filteredOrders = allOrdersData;
     if (window.currentOrderFilter !== 'all') {
         if (window.currentOrderFilter === 'เสร็จสิ้น') {
-            // 💡 อัปเดต Filter ตอนคลิกแท็บ "เสร็จสิ้นแล้ว" ให้โชว์บิลที่จัดส่งแล้วด้วย
             filteredOrders = allOrdersData.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว'));
         } else {
             filteredOrders = allOrdersData.filter(o => o.order_status === window.currentOrderFilter || (window.currentOrderFilter==='รอการอนุมัติ' && o.order_status==='pending') || (window.currentOrderFilter==='รอชำระเงิน' && o.order_status==='รอการชำระเงิน'));
@@ -160,7 +158,7 @@ function renderOrderTable() {
                 created_at: o.created_at,
                 order_status: o.order_status,
                 total_price: 0,
-                shipping_address: o.shipping_address || null, // เก็บ shipping_address ไว้ใช้
+                shipping_address: o.shipping_address || null, 
                 member: o.member,
                 deposit_payment: o.deposit_payment,
                 items: []
@@ -179,7 +177,6 @@ function renderOrderTable() {
         let custPhone = group.member?.user_phone || '-';
         let custAddrText = '<span style="color:#ef4444; font-size:12px;">ลูกค้ายังไม่ระบุที่อยู่</span>';
 
-        // ดึงที่อยู่จาก shipping_address ของบิลก่อน (สำคัญสุด)
         if (group.shipping_address) {
             try {
                 let addrObj = typeof group.shipping_address === 'string' ? JSON.parse(group.shipping_address) : group.shipping_address;
@@ -190,7 +187,6 @@ function renderOrderTable() {
                 custAddrText = group.shipping_address;
             }
         } 
-        // ถ้าไม่มี ให้ดึงจาก Profile เป็นสำรอง
         else if (group.member && group.member.user_address) {
             try {
                 let addrArray = JSON.parse(group.member.user_address);
@@ -208,16 +204,14 @@ function renderOrderTable() {
         let isPaidIcon = '<span style="color:#EF4444; font-size:12px; font-weight:700; display:flex; align-items:center; gap:4px;"><i data-lucide="x-circle" style="width:14px; height:14px;"></i> ยังไม่จ่ายเงิน</span>';
         let slipBtn = '';
 
-        // 💡 1. แก้ไขบัคคำนวณยอดเงินมัดจำของสลิปตรงนี้ครับ
         if (group.deposit_payment && group.deposit_payment.length > 0) {
-            const paymentInfo = { ...group.deposit_payment[0] }; // อ้างอิงข้อมูลสลิปใบแรก
+            const paymentInfo = { ...group.deposit_payment[0] }; 
             
-            // บวกยอดมัดจำรวมทุกชิ้นในบิล
             let totalDeposit = 0;
             group.deposit_payment.forEach(dp => {
                 totalDeposit += Number(dp.payment_amount || 0);
             });
-            paymentInfo.payment_amount = totalDeposit; // อัปเดตยอดรวม
+            paymentInfo.payment_amount = totalDeposit;
 
             const slipPath = paymentInfo.payment_slip;
             const safeJsonStr = encodeURIComponent(JSON.stringify(paymentInfo)); 
@@ -231,15 +225,30 @@ function renderOrderTable() {
         let statusBadge = '';
         let actionButtons = '-';
         const idsStr = JSON.stringify(group.allOrderIds);
+        
+        // 💡 ตรวจสอบว่าในบิลนี้ มีรายการที่ต้องการ "ประเมินราคา" หรือไม่ (ราคา = 0)
+        const isNeedsEvaluation = group.items.some(item => Number(item.order_total_price) === 0);
 
         if(group.order_status === 'รอการอนุมัติ' || group.order_status === 'pending') {
-            statusBadge = `<div style="background:#FFEDD5; color:#EA580C; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รออนุมัติคำสั่งซื้อ</div>`;
-            actionButtons = `
-                <div style="display:flex; gap:8px;">
-                    <button style="background:#10B981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; flex:1; box-shadow:0 2px 4px rgba(16,185,129,0.2);" onclick='updateOrderBillStatus(${idsStr}, "รอชำระเงิน")'>อนุมัติให้โอนเงิน</button> 
-                    <button style="background:#EF4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; flex:1; box-shadow:0 2px 4px rgba(239,68,68,0.2);" onclick='updateOrderBillStatus(${idsStr}, "ไม่อนุมัติ")'>ปฏิเสธ</button>
-                </div>
-            `;
+            if (isNeedsEvaluation) {
+                // 💡 ถ้ามีรายการรอประเมินราคา ให้แสดงปุ่มพิเศษ
+                statusBadge = `<div style="background:#FEF3C7; color:#D97706; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รอประเมินราคางานสั่งทำ</div>`;
+                actionButtons = `
+                    <div style="display:flex; gap:8px;">
+                        <button style="background:#F59E0B; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; flex:1; box-shadow:0 2px 4px rgba(245,158,11,0.2);" onclick='openEvalModal(${JSON.stringify(group.items)})'>กดเพื่อประเมินราคางาน</button> 
+                        <button style="background:#EF4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; flex:0.3; box-shadow:0 2px 4px rgba(239,68,68,0.2);" onclick='updateOrderBillStatus(${idsStr}, "ไม่อนุมัติ")'>ปฏิเสธ</button>
+                    </div>
+                `;
+            } else {
+                // 💡 บิลปกติ ที่มีราคาครบถ้วนแล้ว
+                statusBadge = `<div style="background:#FFEDD5; color:#EA580C; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รออนุมัติคำสั่งซื้อ</div>`;
+                actionButtons = `
+                    <div style="display:flex; gap:8px;">
+                        <button style="background:#10B981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; flex:1; box-shadow:0 2px 4px rgba(16,185,129,0.2);" onclick='updateOrderBillStatus(${idsStr}, "รอชำระเงิน")'>อนุมัติให้โอนเงิน</button> 
+                        <button style="background:#EF4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; flex:1; box-shadow:0 2px 4px rgba(239,68,68,0.2);" onclick='updateOrderBillStatus(${idsStr}, "ไม่อนุมัติ")'>ปฏิเสธ</button>
+                    </div>
+                `;
+            }
         } else if(group.order_status === 'รอชำระเงิน' || group.order_status === 'รอการชำระเงิน') {
             statusBadge = `<div style="background:#F1F5F9; color:#64748B; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รอลูกค้าโอนเงิน</div>`;
             actionButtons = `<span style="font-size:12px; color:#94A3B8; font-weight:500;">รอการโอนเงินจากลูกค้า</span>`;
@@ -254,7 +263,7 @@ function renderOrderTable() {
         } else if(group.order_status === 'กำลังผลิต') {
             statusBadge = `<div style="background:#EDE9FE; color:#8B5CF6; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">กำลังผลิต</div>`;
             actionButtons = `<button style="background:#0F172A; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; width:100%;" onclick='updateOrderBillStatus(${idsStr}, "จัดส่งแล้ว")'>กดเพื่อจัดส่งสินค้า</button>`;
-        } else if(group.order_status.includes('จัดส่งแล้ว')) { // 💡 รองรับสถานะที่มีการแนบเลขพัสดุ
+        } else if(group.order_status.includes('จัดส่งแล้ว')) { 
             statusBadge = `<div style="background:#F1F5F9; color:#0F172A; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">${group.order_status}</div>`;
             actionButtons = `<button style="background:#10B981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; width:100%;" onclick='updateOrderBillStatus(${idsStr}, "เสร็จสิ้น")'>จบงาน (ลูกค้าได้รับแล้ว)</button>`;
         } else if(group.order_status === 'เสร็จสิ้น' || group.order_status === 'ให้คะแนนแล้ว') {
@@ -272,6 +281,11 @@ function renderOrderTable() {
             let modelName = model.model_name || 'ไม่พบข้อมูลโมเดล';
             let sizeText = typeof item.selected_size === 'object' && item.selected_size !== null ? item.selected_size.display : (item.selected_size || 'มาตรฐาน');
             
+            let priceDisplay = `฿${item.order_total_price.toLocaleString()}`;
+            if (Number(item.order_total_price) === 0 && (group.order_status === 'รอการอนุมัติ' || group.order_status === 'pending')) {
+                priceDisplay = `<span style="color:#D97706; font-size:12px; background:#FEF3C7; padding:2px 6px; border-radius:4px;">รอประเมินราคา</span>`;
+            }
+
             itemsHTML += `
                 <div style="display:flex; gap:15px; padding: 12px 0; ${index > 0 ? 'border-top: 1px dashed #E2E8F0;' : ''}">
                     <img src="${modelImg}" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid #E2E8F0; flex-shrink:0;">
@@ -280,7 +294,7 @@ function renderOrderTable() {
                         <div style="font-size:12px; color:#64748B;">สี: ${item.selected_color || '-'} | วัสดุ: ${item.selected_material || '-'} | ขนาด: ${sizeText}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-weight:800; color:#0F172A;">฿${item.order_total_price.toLocaleString()}</div>
+                        <div style="font-weight:800; color:#0F172A;">${priceDisplay}</div>
                         <div style="font-size:12px; color:#64748B; font-weight:600;">${item.order_total_qty} ชิ้น</div>
                     </div>
                 </div>
@@ -288,6 +302,9 @@ function renderOrderTable() {
         });
 
         const orderDate = new Date(group.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        
+        let totalDisplay = `฿${group.total_price.toLocaleString()}`;
+        if (group.total_price === 0 && isNeedsEvaluation) totalDisplay = `<span style="font-size:16px; color:#D97706;">รอประเมินราคา</span>`;
 
         html += `
             <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
@@ -300,7 +317,7 @@ function renderOrderTable() {
                         <div style="color:#64748B; font-size:13px;">รหัสอ้างอิงบิล: <b style="color:#0F172A;">#${group.mainOrderId}</b> | วันที่: ${orderDate}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:24px; font-weight:900; color:#2563EB;">฿${group.total_price.toLocaleString()}</div>
+                        <div style="font-size:24px; font-weight:900; color:#2563EB;">${totalDisplay}</div>
                         <div style="font-size:12px; font-weight:600; color:#64748B;">ยอดรวมทั้งบิล (${group.items.length} รายการ)</div>
                     </div>
                 </div>
@@ -330,13 +347,12 @@ function renderOrderTable() {
     if(typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// 💡 2. แก้ไขระบบเพื่อรองรับการแนบเลขพัสดุ
 window.updateOrderBillStatus = async function(orderIdsArray, status) {
     let finalStatus = status;
 
     if (status === 'จัดส่งแล้ว') {
         const trackingNum = prompt('📦 กรุณากรอก "บริษัทขนส่ง และ เลขพัสดุ" (เช่น Flash: TH123456) \n*หากยังไม่มีให้กดตกลงข้ามไปก่อนได้');
-        if (trackingNum === null) return; // ถ้ายกเลิก
+        if (trackingNum === null) return; 
         
         if (trackingNum.trim() !== '') {
             finalStatus = `จัดส่งแล้ว (เลขพัสดุ: ${trackingNum})`; 
@@ -357,6 +373,96 @@ window.updateOrderBillStatus = async function(orderIdsArray, status) {
         alert(`✅ อัปเดตสถานะสำเร็จ`);
         loadOrderList(); 
     } catch (err) { alert('❌ เกิดข้อผิดพลาด: ' + err.message); }
+};
+
+// 💡 3. ฟังก์ชันใหม่: แสดงหน้าต่างประเมินราคา
+window.openEvalModal = function(items) {
+    let html = `<div style="padding: 20px; font-family: 'Prompt', sans-serif;">
+        <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #0F172A;">ประเมินราคางานสั่งทำ (ขนาดกำหนดเอง)</h3>
+        <p style="font-size: 12px; color: #64748B; margin-bottom: 20px;">กรุณาระบุ "ราคาต่อชิ้น" สำหรับรายการที่รอประเมินราคา เมื่อบันทึกแล้วบิลนี้จะถูกอนุมัติทันที</p>
+    `;
+    
+    // สร้างฟอร์มให้กรอกเฉพาะชิ้นที่ราคาเป็น 0
+    items.forEach(item => {
+        if (Number(item.order_total_price) === 0) {
+            let modelData = item.model;
+            if (Array.isArray(modelData)) modelData = modelData.length > 0 ? modelData[0] : null;
+            const modelName = (modelData || {}).model_name || 'โมเดล 3D';
+            
+            html += `
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">${modelName}</div>
+                    <div style="font-size: 12px; color: #64748B; margin-bottom: 10px;">ขนาด: ${item.selected_size} | จำนวน: ${item.order_total_qty} ชิ้น</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label style="font-size: 12px; font-weight: bold;">ระบุราคา (ต่อชิ้น):</label>
+                        <input type="number" id="eval_price_${item.order_id}" style="border: 1px solid #CBD5E1; padding: 8px; border-radius: 6px; width: 100px; outline: none;" placeholder="0" min="1">
+                        <span style="font-size: 12px; font-weight: bold; color: #64748B;">บาท</span>
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    html += `
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <button onclick="document.body.removeChild(this.parentElement.parentElement.parentElement)" style="background: #F1F5F9; color: #475569; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">ยกเลิก</button>
+            <button onclick='saveEvalPrice(${JSON.stringify(items)})' style="background: #F59E0B; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(245,158,11,0.2);">บันทึกและอนุมัติบิล</button>
+        </div>
+    </div>`;
+
+    const modalOverlay = document.createElement('div');
+    modalOverlay.style.cssText = "position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;";
+    
+    const modalBox = document.createElement('div');
+    modalBox.style.cssText = "background: white; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);";
+    modalBox.innerHTML = html;
+    
+    modalOverlay.appendChild(modalBox);
+    document.body.appendChild(modalOverlay);
+};
+
+// 💡 4. ฟังก์ชันบันทึกราคาและอัปเดตบิล
+window.saveEvalPrice = async function(items) {
+    try {
+        const updatePromises = [];
+        let allIds = [];
+
+        for (const item of items) {
+            allIds.push(item.order_id);
+            if (Number(item.order_total_price) === 0) {
+                const inputEl = document.getElementById(`eval_price_${item.order_id}`);
+                const pricePerUnit = Number(inputEl.value);
+                
+                if (!pricePerUnit || pricePerUnit <= 0) {
+                    alert("กรุณาระบุราคาประเมินให้ครบถ้วนและมากกว่า 0 บาท");
+                    return;
+                }
+
+                // ราคาลง Database = ราคาต่อชิ้น * จำนวนชิ้น
+                const totalCalculated = pricePerUnit * item.order_total_qty;
+
+                // เตรียมคำสั่งอัปเดตราคาของสินค้านั้น
+                updatePromises.push(
+                    db.from('order_model').update({
+                        price_at_order: pricePerUnit,
+                        order_total_price: totalCalculated
+                    }).eq('order_id', item.order_id)
+                );
+            }
+        }
+
+        if(updatePromises.length > 0) {
+            // ยิงอัปเดตราคา
+            await Promise.all(updatePromises);
+            // เปลี่ยนสถานะบิลเป็นรอชำระเงิน
+            await db.from('order_model').update({ order_status: 'รอชำระเงิน' }).in('order_id', allIds);
+            
+            alert('✅ บันทึกราคาและอนุมัติบิลเรียบร้อยแล้ว');
+            location.reload();
+        }
+    } catch (err) {
+        alert('❌ เกิดข้อผิดพลาด: ' + err.message);
+    }
 };
 
 // =========================================================
