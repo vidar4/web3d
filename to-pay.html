@@ -103,11 +103,16 @@
             
             <div class="lg:col-span-8 flex flex-col gap-6">
                 
-                <div id="select-all-wrapper" style="display: none;" class="bg-white p-5 rounded-[20px] border border-slate-200 shadow-sm flex justify-between items-center transition-all">
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" id="select-all-bills" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer transition-colors" onchange="toggleSelectAllBills(this)">
-                        <span class="font-black text-slate-800">เลือกรายการที่ต้องชำระทั้งหมด</span>
-                    </label>
+                <div id="select-all-wrapper" style="display: none;" class="bg-white p-4 sm:p-5 rounded-[20px] border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 transition-all">
+                    <div class="w-full sm:w-[70%]">
+                        <label class="flex items-center gap-3 cursor-pointer w-fit">
+                            <input type="checkbox" id="select-all-bills" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer transition-colors" onchange="toggleSelectAllBills(this)">
+                            <span class="font-black text-slate-800">เลือกรายการที่ต้องชำระทั้งหมด</span>
+                        </label>
+                    </div>
+                    <button id="btn-cancel-multi" onclick="cancelMultiOrders()" class="w-full sm:w-[30%] bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 py-2.5 rounded-xl font-bold text-sm transition-all border border-red-100 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> ยกเลิกบิลทั้งหมด
+                    </button>
                 </div>
 
                 <div id="pending-payments-container" class="space-y-6">
@@ -182,19 +187,16 @@
             }
         });
 
-        // 💡 ฟังก์ชันทำงานร่วมกับการเลือกทั้งหมด
         function toggleSelectAllBills(source) {
             const checkboxes = document.querySelectorAll('#pending-payments-container input[type="checkbox"]');
             checkboxes.forEach(cb => {
                 if (cb.checked !== source.checked) {
                     cb.checked = source.checked;
-                    // กระตุ้น Event Change เพื่อให้ JS หลักคำนวณยอดเงินให้ใหม่
                     cb.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
         }
 
-        // 💡 คอยเฝ้าดูว่าโหลดบิลเสร็จหรือยัง ถ้าโหลดเสร็จค่อยแสดงกล่อง "เลือกทั้งหมด"
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('pending-payments-container');
             const wrapper = document.getElementById('select-all-wrapper');
@@ -215,7 +217,7 @@
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="to-pay.js?v=2"></script>
+    <script src="to-pay.js?v=5"></script>
     <script> lucide.createIcons(); </script>
 </body>
 </html>

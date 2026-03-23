@@ -181,8 +181,8 @@ async function fetchPendingPayments(userId) {
             const isChecked = billIdx === 0 ? 'checked' : ''; 
             const borderClass = billIdx === 0 ? 'border-primary ring-2 ring-primary/20' : 'border-slate-200';
 
-            // 💡 แก้ไข HTML ลบไอคอนและคำว่า "เลือกชำระบิลนี้" ออก เหลือแค่ Checkbox กับ รหัสบิล
             billCard.className = `bill-card bg-white rounded-2xl shadow-sm border ${borderClass} overflow-hidden relative transition-all`;
+            
             billCard.innerHTML = `
                 <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
                 <div class="p-5 md:p-6 pl-7 md:pl-8">
@@ -209,9 +209,14 @@ async function fetchPendingPayments(userId) {
                         ${itemsHTML}
                     </div>
 
-                    <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-                        <span class="text-slate-500 font-bold text-sm">ยอดรวมบิลนี้</span>
-                        <span class="text-lg font-black text-primary tracking-tight">฿${bill.total_price.toLocaleString()}</span>
+                    <div class="flex flex-col sm:flex-row justify-between items-end sm:items-center pt-4 border-t border-slate-100 gap-4">
+                        <button type="button" onclick='cancelOrder("${bill.mainOrderId}", ${JSON.stringify(bill.allOrderIds)})' class="w-full sm:w-auto text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 px-4 py-2.5 rounded-xl border border-red-100 transition flex items-center justify-center gap-1.5 active:scale-95">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i> ยกเลิกคำสั่งซื้อนี้
+                        </button>
+                        <div class="text-right w-full sm:w-auto">
+                            <span class="text-slate-500 font-bold text-sm">ยอดรวมบิลนี้</span>
+                            <span class="text-xl font-black text-primary tracking-tight ml-2">฿${bill.total_price.toLocaleString()}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -264,11 +269,16 @@ window.calculateMultiTotal = function(checkboxEl) {
         
     document.getElementById('summary-deposit').innerText = '฿' + formattedDeposit;
 
-    const btn = document.getElementById('btn-pay-multi');
+    // 💡 เปิด/ปิด ปุ่มชำระเงิน และ ปุ่มยกเลิกทั้งหมด
+    const btnPay = document.getElementById('btn-pay-multi');
+    const btnCancel = document.getElementById('btn-cancel-multi');
+    
     if(count > 0) {
-        btn.disabled = false;
+        if(btnPay) btnPay.disabled = false;
+        if(btnCancel) btnCancel.disabled = false;
     } else {
-        btn.disabled = true;
+        if(btnPay) btnPay.disabled = true;
+        if(btnCancel) btnCancel.disabled = true;
     }
 }
 
@@ -284,3 +294,70 @@ window.proceedToMultiPayment = function() {
         window.location.href = `pay-deposit.html?bills=${ids.join(',')}`;
     }
 }
+
+// ===========================================
+// 5. ระบบยกเลิกคำสั่งซื้อ (Cancel Order)
+// ===========================================
+window.cancelOrder = async function(mainOrderId, allOrderIds) {
+    if (!confirm(`⚠️ ยืนยันการยกเลิกคำสั่งซื้อรหัส #${mainOrderId}?\n(หากยกเลิกแล้วจะไม่สามารถกู้คืนได้)`)) {
+        return;
+    }
+
+    try {
+        const { error } = await db.from('order_model')
+            .update({ order_status: 'ยกเลิกคำสั่งซื้อ' })
+            .in('order_id', allOrderIds);
+
+        if (error) throw error;
+
+        alert('✅ ยกเลิกคำสั่งซื้อรหัส #' + mainOrderId + ' สำเร็จแล้ว');
+        window.location.reload();
+    } catch (err) {
+        console.error("Cancel Order Error:", err);
+        alert('❌ เกิดข้อผิดพลาดในการยกเลิก: ' + err.message);
+    }
+};
+
+// 💡 ฟังก์ชันใหม่: ยกเลิกหลายบิลพร้อมกัน (Bulk Cancel)
+window.cancelMultiOrders = async function() {
+    const checkboxes = document.querySelectorAll('.bill-checkbox:checked');
+    if (checkboxes.length === 0) return;
+
+    if (!confirm(`⚠️ ยืนยันการยกเลิกคำสั่งซื้อที่เลือกทั้งหมด (${checkboxes.length} บิล)?\n(หากยกเลิกแล้วจะไม่สามารถกู้คืนได้)`)) {
+        return;
+    }
+
+    let allIdsToCancel = [];
+    checkboxes.forEach(cb => {
+        const billId = cb.value;
+        const bill = window.pendingBills.find(b => String(b.mainOrderId) === String(billId));
+        if (bill && bill.allOrderIds) {
+            allIdsToCancel = allIdsToCancel.concat(bill.allOrderIds);
+        }
+    });
+
+    if (allIdsToCancel.length === 0) return;
+
+    const btn = document.getElementById('btn-cancel-multi');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> กำลังยกเลิก...';
+    btn.disabled = true;
+    if(typeof lucide !== 'undefined') lucide.createIcons();
+
+    try {
+        const { error } = await db.from('order_model')
+            .update({ order_status: 'ยกเลิกคำสั่งซื้อ' })
+            .in('order_id', allIdsToCancel);
+
+        if (error) throw error;
+
+        alert(`✅ ยกเลิกคำสั่งซื้อที่เลือกทั้งหมดสำเร็จแล้ว`);
+        window.location.reload();
+    } catch (err) {
+        console.error("Cancel Multi Order Error:", err);
+        alert('❌ เกิดข้อผิดพลาดในการยกเลิก: ' + err.message);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        if(typeof lucide !== 'undefined') lucide.createIcons();
+    }
+};
