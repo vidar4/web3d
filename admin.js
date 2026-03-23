@@ -122,7 +122,7 @@ async function loadOrderList() {
         document.getElementById('stWaitSlip').innerText = orders.filter(o => o.order_status === 'รอตรวจสอบ').length;
         document.getElementById('stProducing').innerText = orders.filter(o => o.order_status === 'กำลังผลิต').length;
         
-        document.getElementById('stDone').innerText = orders.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว')).length;
+        document.getElementById('stDone').innerText = orders.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว') || o.order_status.includes('ยกเลิก')).length; // 💡 นับยอดบิลที่ยกเลิกไปด้วยในช่องสุดท้าย
 
         renderOrderTable();
     } catch (err) {
@@ -136,7 +136,7 @@ function renderOrderTable() {
     let filteredOrders = allOrdersData;
     if (window.currentOrderFilter !== 'all') {
         if (window.currentOrderFilter === 'เสร็จสิ้น') {
-            filteredOrders = allOrdersData.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว'));
+            filteredOrders = allOrdersData.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว') || o.order_status.includes('ยกเลิก')); // 💡 เพิ่มสถานะยกเลิกใน Filter ท้ายสุด
         } else {
             filteredOrders = allOrdersData.filter(o => o.order_status === window.currentOrderFilter || (window.currentOrderFilter==='รอการอนุมัติ' && o.order_status==='pending') || (window.currentOrderFilter==='รอชำระเงิน' && o.order_status==='รอการชำระเงิน'));
         }
@@ -226,12 +226,10 @@ function renderOrderTable() {
         let actionButtons = '-';
         const idsStr = JSON.stringify(group.allOrderIds);
         
-        // 💡 ตรวจสอบว่าในบิลนี้ มีรายการที่ต้องการ "ประเมินราคา" หรือไม่ (ราคา = 0)
         const isNeedsEvaluation = group.items.some(item => Number(item.order_total_price) === 0);
 
         if(group.order_status === 'รอการอนุมัติ' || group.order_status === 'pending') {
             if (isNeedsEvaluation) {
-                // 💡 ถ้ามีรายการรอประเมินราคา ให้แสดงปุ่มพิเศษ
                 statusBadge = `<div style="background:#FEF3C7; color:#D97706; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รอประเมินราคางานสั่งทำ</div>`;
                 actionButtons = `
                     <div style="display:flex; gap:8px;">
@@ -240,7 +238,6 @@ function renderOrderTable() {
                     </div>
                 `;
             } else {
-                // 💡 บิลปกติ ที่มีราคาครบถ้วนแล้ว
                 statusBadge = `<div style="background:#FFEDD5; color:#EA580C; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รออนุมัติคำสั่งซื้อ</div>`;
                 actionButtons = `
                     <div style="display:flex; gap:8px;">
@@ -268,8 +265,9 @@ function renderOrderTable() {
             actionButtons = `<button style="background:#10B981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; width:100%;" onclick='updateOrderBillStatus(${idsStr}, "เสร็จสิ้น")'>จบงาน (ลูกค้าได้รับแล้ว)</button>`;
         } else if(group.order_status === 'เสร็จสิ้น' || group.order_status === 'ให้คะแนนแล้ว') {
             statusBadge = `<div style="background:#D1FAE5; color:#10B981; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">สำเร็จแล้ว</div>`;
-        } else if(group.order_status === 'ไม่อนุมัติ') {
-            statusBadge = `<div style="background:#FEE2E2; color:#EF4444; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">ยกเลิกแล้ว</div>`;
+        } else if(group.order_status === 'ไม่อนุมัติ' || group.order_status.includes('ยกเลิก')) { // 💡 รองรับสถานะลูกค้ายกเลิกด้วย
+            statusBadge = `<div style="background:#FEE2E2; color:#EF4444; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">ยกเลิกคำสั่งซื้อแล้ว</div>`;
+            isPaidIcon = ''; // ถ้ายกเลิกแล้ว ไม่ต้องแสดงไอคอนยังไม่จ่ายเงิน
         }
 
         let itemsHTML = '';
@@ -307,7 +305,7 @@ function renderOrderTable() {
         if (group.total_price === 0 && isNeedsEvaluation) totalDisplay = `<span style="font-size:16px; color:#D97706;">รอประเมินราคา</span>`;
 
         html += `
-            <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+            <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${group.order_status.includes('ยกเลิก') ? 'opacity: 0.7; filter: grayscale(1);' : ''}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
                     <div>
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">

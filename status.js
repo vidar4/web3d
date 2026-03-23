@@ -86,10 +86,13 @@ async function fetchOrders(userId) {
                 size: (typeof order.selected_size === 'object' && order.selected_size !== null) ? order.selected_size.display : (order.selected_size || 'มาตรฐาน')
             });
             
+            // 💡 อัปเดตสถานะเพิ่มเติมให้รองรับสถานะยกเลิก
             if (order.order_status === 'ไม่อนุมัติ') {
                 groupedOrders[timeKey].order_status = 'ไม่อนุมัติ';
             } else if (order.order_status === 'รอชำระเงิน' || order.order_status === 'รอการชำระเงิน') {
                 groupedOrders[timeKey].order_status = 'รอชำระเงิน';
+            } else if (order.order_status === 'ยกเลิกคำสั่งซื้อ') {
+                groupedOrders[timeKey].order_status = 'ยกเลิกคำสั่งซื้อ';
             }
         });
 
@@ -128,7 +131,8 @@ async function fetchOrders(userId) {
             });
 
             const stepperHTML = generateStepper(bill.order_status, bill.mainOrderId);
-            const isRejected = bill.order_status === 'ไม่อนุมัติ';
+            // 💡 เพิ่มการตรวจสอบสถานะ "ยกเลิก"
+            const isRejected = bill.order_status === 'ไม่อนุมัติ' || bill.order_status === 'ยกเลิกคำสั่งซื้อ';
             const cardBg = isRejected ? 'bg-red-50/30' : 'bg-white';
             const borderCol = isRejected ? 'border-red-200' : 'border-slate-100';
 
@@ -204,7 +208,8 @@ async function fetchOrders(userId) {
             });
 
             const orderCard = document.createElement('div');
-            orderCard.className = `${cardBg} p-6 md:p-8 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border ${borderCol} mb-6 relative overflow-hidden transition-colors`;
+            // 💡 ถ้าเป็นบิลยกเลิก ให้โชว์เป็นสีเทาจางๆ
+            orderCard.className = `${cardBg} p-6 md:p-8 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border ${borderCol} mb-6 relative overflow-hidden transition-colors ${isRejected ? 'opacity-60 grayscale-[0.8]' : ''}`;
 
             orderCard.innerHTML = `
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 mb-4 gap-2">
@@ -218,7 +223,7 @@ async function fetchOrders(userId) {
                     </div>
                 </div>
 
-                <div class="mb-4 bg-slate-50 p-4 rounded-xl border border-slate-100 ${isRejected ? 'opacity-70 grayscale-[0.5]' : ''}">
+                <div class="mb-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <div class="flex items-center gap-2 mb-2">
                         <i data-lucide="map-pin" class="w-4 h-4 text-primary"></i>
                         <span class="font-bold text-slate-700 text-sm">ที่อยู่จัดส่ง</span>
@@ -226,14 +231,14 @@ async function fetchOrders(userId) {
                     ${addressHTML}
                 </div>
 
-                <div class="mb-8 bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 ${isRejected ? 'opacity-70 grayscale-[0.5]' : ''}">
+                <div class="mb-8 bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100">
                     <div class="mb-5 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                         ${itemsHTML}
                     </div>
 
                     <div class="flex justify-between items-center w-full pt-4 border-t border-slate-200">
                         <span class="text-sm font-bold text-slate-700">ยอดรวมทั้งบิล:</span>
-                        <span class="text-primary font-black text-xl md:text-2xl ${isRejected ? 'line-through text-slate-400' : ''}">฿${bill.total_price.toLocaleString()}</span>
+                        <span class="text-primary font-black text-xl md:text-2xl ${isRejected ? 'line-through text-slate-400' : ''}">${bill.total_price > 0 ? '฿' + bill.total_price.toLocaleString() : 'รอประเมินราคา'}</span>
                     </div>
                 </div>
 
@@ -267,6 +272,7 @@ function generateStepper(currentStatus, orderId) {
     let isRejected = false;
     let isPendingPayment = false;
 
+    // 💡 รองรับสถานะ "ยกเลิกคำสั่งซื้อ"
     if (currentStatus === 'รอตรวจสอบ' || currentStatus === 'pending' || currentStatus === 'รอการอนุมัติ' || currentStatus === 'รอชำระเงิน' || currentStatus === 'รอการชำระเงิน') {
         currentIdx = 1;
         isPendingPayment = true; 
@@ -282,16 +288,17 @@ function generateStepper(currentStatus, orderId) {
     else if (currentStatus === 'กำลังผลิต' || currentStatus === 'ผลิตโมเดล') {
         currentIdx = 2;
     }
-    else if (currentStatus === 'จัดส่งแล้ว' || currentStatus === 'รอการยอมรับ') {
+    else if (currentStatus.includes('จัดส่งแล้ว') || currentStatus === 'รอการยอมรับ') {
         currentIdx = 3;
     }
     else if (currentStatus === 'เสร็จสิ้น') {
         currentIdx = 4;
     }
-    else if (currentStatus === 'ไม่อนุมัติ') {
+    // 💡 เพิ่มตรงนี้
+    else if (currentStatus === 'ไม่อนุมัติ' || currentStatus === 'ยกเลิกคำสั่งซื้อ') {
         currentIdx = 1;
         isRejected = true;
-        steps[1].label = 'ถูกปฏิเสธ';
+        steps[1].label = currentStatus === 'ไม่อนุมัติ' ? 'ถูกปฏิเสธ' : 'ยกเลิกแล้ว';
         steps[1].icon = 'x-circle';
     }
 
