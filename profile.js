@@ -235,7 +235,6 @@ function renderAddressList() {
         displayList.forEach((addr) => {
             const isDef = addr.isDefault === true;
             
-            // 💡 รูปแบบ Badge ใหม่ที่สะอาดขึ้น
             const typeBadge = addr.type ? `<span class="bg-blue-50 text-primary text-[10px] font-bold px-2 py-0.5 rounded-md border border-blue-100 uppercase">${addr.type}</span>` : '';
             
             const badgeHTML = isDef 
@@ -244,13 +243,11 @@ function renderAddressList() {
             
             const addrNumDisplay = addr.addressNumber || '?';
 
-            // 💡 แสดงผลชื่อ-เบอร์ คล้ายๆ หน้า to-pay
             const nameDisplay = addr.fullname || (addr.fname && addr.lname ? `${addr.fname} ${addr.lname}` : 'ไม่ระบุชื่อผู้รับ');
             const phoneDisplay = addr.phone ? addr.phone : 'ไม่ระบุเบอร์โทร';
 
             const borderClass = isDef ? 'border-primary ring-1 ring-primary/20 bg-blue-50/10' : 'border-slate-200 bg-white hover:border-primary/50';
 
-            // 💡 โครงสร้าง HTML แบบใหม่สำหรับ Address Card
             container.innerHTML += `
                 <div class="border rounded-2xl p-5 mb-4 transition-all relative ${borderClass} group">
                     <div class="flex items-start gap-4">
@@ -514,8 +511,11 @@ async function loadOrderHistory() {
         
         groupedOrders[timeKey].total_price += Number(o.order_total_price);
 
+        // 💡 ตรวจสอบและอัปเดตสถานะสำหรับกลุ่มบิล
         if (o.order_status === 'ไม่อนุมัติ') {
             groupedOrders[timeKey].order_status = 'ไม่อนุมัติ';
+        } else if (o.order_status === 'ยกเลิกคำสั่งซื้อ') {
+            groupedOrders[timeKey].order_status = 'ยกเลิกคำสั่งซื้อ'; // รองรับสถานะยกเลิก
         } else if (o.order_status === 'รอชำระเงิน' || o.order_status === 'รอการชำระเงิน') {
             groupedOrders[timeKey].order_status = 'รอชำระเงิน';
         } else if (o.order_status === 'รอการอนุมัติ' && groupedOrders[timeKey].order_status !== 'รอชำระเงิน') {
@@ -530,6 +530,7 @@ async function loadOrderHistory() {
 
     finalOrders.forEach(group => {
         const isDone = group.order_status === 'completed' || group.order_status === 'ให้คะแนนแล้ว' || group.order_status === 'เสร็จสิ้น';
+        const isCanceled = group.order_status === 'ยกเลิกคำสั่งซื้อ' || group.order_status === 'ไม่อนุมัติ';
         
         let displayStatus = isDone ? 'สำเร็จแล้ว' : 'กำลังดำเนินการ';
         let statusColor = isDone ? '#10b981' : '#f59e0b';
@@ -551,6 +552,10 @@ async function loadOrderHistory() {
             displayStatus = 'คำสั่งซื้อถูกปฏิเสธ / มีปัญหา';
             statusColor = '#ef4444'; 
             statusIcon = 'x-circle';
+        } else if (group.order_status === 'ยกเลิกคำสั่งซื้อ') { // 💡 อัปเดต UI เมื่อโดนยกเลิก
+            displayStatus = 'ยกเลิกคำสั่งซื้อแล้ว';
+            statusColor = '#ef4444'; 
+            statusIcon = 'x-circle';
         }
 
         let itemsHTML = '';
@@ -560,8 +565,14 @@ async function loadOrderHistory() {
 
             let sizeDisplay = o.selected_size || "มาตรฐาน";
 
-            const pricePerUnit = (o.order_total_qty > 0) ? (o.order_total_price / o.order_total_qty).toFixed(0) : o.order_total_price;
-            const itemTotalPrice = Number(o.order_total_price).toLocaleString();
+            // 💡 ถ้าเป็นงานรอประเมิน (ราคา 0) ให้โชว์คำว่า รอประเมิน
+            let priceDisplay = `฿${Number(o.order_total_price).toLocaleString()}`;
+            let pricePerUnitDisplay = `฿${o.order_total_qty > 0 ? (o.order_total_price / o.order_total_qty).toFixed(0) : 0}`;
+            
+            if (Number(o.order_total_price) === 0 && group.order_status === 'รอการอนุมัติ') {
+                priceDisplay = `<span style="font-size: 13px; color: #D97706; background: #FEF3C7; padding: 2px 6px; border-radius: 4px;">รอประเมินราคา</span>`;
+                pricePerUnitDisplay = '-';
+            }
 
             let itemActionsHTML = '';
             if (o.order_status === 'ให้คะแนนแล้ว' && o.reviews && o.reviews.length > 0) {
@@ -590,17 +601,20 @@ async function loadOrderHistory() {
                     </div>
 
                     <div style="display: flex; flex-direction: column; align-items: flex-end; min-width: 100px;">
-                        <div style="font-weight: 700; color: #475569; font-size: 13px;">฿${Number(pricePerUnit).toLocaleString()} <span style="font-weight:400">x${o.order_total_qty}</span></div>
-                        <div style="font-weight: 800; color: #1e293b; font-size: 15px; margin-bottom: 6px;">฿${itemTotalPrice}</div>
+                        <div style="font-weight: 700; color: #475569; font-size: 13px;">${pricePerUnitDisplay} <span style="font-weight:400">x${o.order_total_qty}</span></div>
+                        <div style="font-weight: 800; color: #1e293b; font-size: 15px; margin-bottom: 6px;">${priceDisplay}</div>
                         <div style="display: flex; gap: 6px;">${itemActionsHTML}</div>
                     </div>
                 </div>`;
         });
 
         const orderDate = new Date(group.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        
+        let totalDisplay = `฿${group.total_price.toLocaleString()}`;
+        if (group.total_price === 0 && group.order_status === 'รอการอนุมัติ') totalDisplay = `<span style="font-size:16px; color:#D97706;">รอประเมินราคา</span>`;
 
         container.innerHTML += `
-            <div class="notranslate" style="background: #ffffff; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+            <div class="notranslate" style="background: #ffffff; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); ${isCanceled ? 'opacity: 0.7; filter: grayscale(1);' : ''}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f8fafc;">
                     <div style="color: #64748b; font-size: 13px;">
                         รหัสอ้างอิงบิล: <b style="color:#1e293b; font-size:15px;">#${group.mainOrderId}</b> 
@@ -623,7 +637,7 @@ async function loadOrderHistory() {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
                     <div>
                         <span style="font-size: 14px; color: #64748b; font-weight: 500;">ยอดรวมทั้งบิล:</span>
-                        <span style="font-size: 22px; font-weight: 800; color: #2563eb; margin-left: 8px;">฿${group.total_price.toLocaleString()}</span>
+                        <span style="font-size: 22px; font-weight: 800; color: #2563eb; margin-left: 8px;">${isCanceled ? '<span style="text-decoration: line-through; color: #94A3B8;">'+totalDisplay+'</span>' : totalDisplay}</span>
                     </div>
                 </div>
             </div>`;
@@ -720,13 +734,11 @@ window.openReviewModal = function(btn) {
     setTimeout(() => { modal.style.opacity = '1'; box.style.transform = 'scale(1)'; }, 10);
 };
 
-window.closeReviewModal = function() {
-    const modal = document.getElementById('reviewViewModal');
-    const box = document.getElementById('reviewModalBox');
-    modal.style.opacity = '0';
-    box.style.transform = 'scale(0.92)';
-    document.body.style.overflow = '';
-    setTimeout(() => { modal.style.display = 'none'; }, 350);
-};
-
-window.logout = function() { localStorage.clear(); window.location.href = 'login.html'; }
+// 💡 9. แก้ไขปุ่ม Logout: เคลียร์เฉพาะข้อมูลบัญชีและตะกร้า แต่เก็บค่าภาษาเอาไว้
+window.logout = function() { 
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('role');
+    localStorage.removeItem('cart'); 
+    window.location.href = 'login.html'; 
+}
