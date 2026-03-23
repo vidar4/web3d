@@ -121,7 +121,9 @@ async function loadOrderList() {
         document.getElementById('stWaitPay').innerText = orders.filter(o => o.order_status === 'รอชำระเงิน' || o.order_status === 'รอการชำระเงิน').length;
         document.getElementById('stWaitSlip').innerText = orders.filter(o => o.order_status === 'รอตรวจสอบ').length;
         document.getElementById('stProducing').innerText = orders.filter(o => o.order_status === 'กำลังผลิต').length;
-        document.getElementById('stDone').innerText = orders.filter(o => o.order_status === 'เสร็จสิ้น' || o.order_status === 'ให้คะแนนแล้ว').length;
+        
+        // 💡 อัปเดต Filter ตัวนับสถิติ (รองรับข้อความ จัดส่งแล้ว(...) ที่มีเลขพัสดุด้วย)
+        document.getElementById('stDone').innerText = orders.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว')).length;
 
         renderOrderTable();
     } catch (err) {
@@ -135,7 +137,8 @@ function renderOrderTable() {
     let filteredOrders = allOrdersData;
     if (window.currentOrderFilter !== 'all') {
         if (window.currentOrderFilter === 'เสร็จสิ้น') {
-            filteredOrders = allOrdersData.filter(o => o.order_status === 'เสร็จสิ้น' || o.order_status === 'ให้คะแนนแล้ว');
+            // 💡 อัปเดต Filter ตอนคลิกแท็บ "เสร็จสิ้นแล้ว" ให้โชว์บิลที่จัดส่งแล้วด้วย
+            filteredOrders = allOrdersData.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว'));
         } else {
             filteredOrders = allOrdersData.filter(o => o.order_status === window.currentOrderFilter || (window.currentOrderFilter==='รอการอนุมัติ' && o.order_status==='pending') || (window.currentOrderFilter==='รอชำระเงิน' && o.order_status==='รอการชำระเงิน'));
         }
@@ -157,7 +160,7 @@ function renderOrderTable() {
                 created_at: o.created_at,
                 order_status: o.order_status,
                 total_price: 0,
-                shipping_address: o.shipping_address || null, // 💡 เก็บ shipping_address ไว้ใช้
+                shipping_address: o.shipping_address || null, // เก็บ shipping_address ไว้ใช้
                 member: o.member,
                 deposit_payment: o.deposit_payment,
                 items: []
@@ -176,7 +179,7 @@ function renderOrderTable() {
         let custPhone = group.member?.user_phone || '-';
         let custAddrText = '<span style="color:#ef4444; font-size:12px;">ลูกค้ายังไม่ระบุที่อยู่</span>';
 
-        // 💡 ดึงที่อยู่จาก shipping_address ของบิลก่อน (สำคัญสุด)
+        // ดึงที่อยู่จาก shipping_address ของบิลก่อน (สำคัญสุด)
         if (group.shipping_address) {
             try {
                 let addrObj = typeof group.shipping_address === 'string' ? JSON.parse(group.shipping_address) : group.shipping_address;
@@ -187,7 +190,7 @@ function renderOrderTable() {
                 custAddrText = group.shipping_address;
             }
         } 
-        // 💡 ถ้าไม่มี ให้ดึงจาก Profile เป็นสำรอง
+        // ถ้าไม่มี ให้ดึงจาก Profile เป็นสำรอง
         else if (group.member && group.member.user_address) {
             try {
                 let addrArray = JSON.parse(group.member.user_address);
@@ -205,8 +208,17 @@ function renderOrderTable() {
         let isPaidIcon = '<span style="color:#EF4444; font-size:12px; font-weight:700; display:flex; align-items:center; gap:4px;"><i data-lucide="x-circle" style="width:14px; height:14px;"></i> ยังไม่จ่ายเงิน</span>';
         let slipBtn = '';
 
+        // 💡 1. แก้ไขบัคคำนวณยอดเงินมัดจำของสลิปตรงนี้ครับ
         if (group.deposit_payment && group.deposit_payment.length > 0) {
-            const paymentInfo = group.deposit_payment[0];
+            const paymentInfo = { ...group.deposit_payment[0] }; // อ้างอิงข้อมูลสลิปใบแรก
+            
+            // บวกยอดมัดจำรวมทุกชิ้นในบิล
+            let totalDeposit = 0;
+            group.deposit_payment.forEach(dp => {
+                totalDeposit += Number(dp.payment_amount || 0);
+            });
+            paymentInfo.payment_amount = totalDeposit; // อัปเดตยอดรวม
+
             const slipPath = paymentInfo.payment_slip;
             const safeJsonStr = encodeURIComponent(JSON.stringify(paymentInfo)); 
             
@@ -242,8 +254,8 @@ function renderOrderTable() {
         } else if(group.order_status === 'กำลังผลิต') {
             statusBadge = `<div style="background:#EDE9FE; color:#8B5CF6; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">กำลังผลิต</div>`;
             actionButtons = `<button style="background:#0F172A; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; width:100%;" onclick='updateOrderBillStatus(${idsStr}, "จัดส่งแล้ว")'>กดเพื่อจัดส่งสินค้า</button>`;
-        } else if(group.order_status === 'จัดส่งแล้ว') {
-            statusBadge = `<div style="background:#F1F5F9; color:#0F172A; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">จัดส่งแล้ว</div>`;
+        } else if(group.order_status.includes('จัดส่งแล้ว')) { // 💡 รองรับสถานะที่มีการแนบเลขพัสดุ
+            statusBadge = `<div style="background:#F1F5F9; color:#0F172A; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">${group.order_status}</div>`;
             actionButtons = `<button style="background:#10B981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; width:100%;" onclick='updateOrderBillStatus(${idsStr}, "เสร็จสิ้น")'>จบงาน (ลูกค้าได้รับแล้ว)</button>`;
         } else if(group.order_status === 'เสร็จสิ้น' || group.order_status === 'ให้คะแนนแล้ว') {
             statusBadge = `<div style="background:#D1FAE5; color:#10B981; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">สำเร็จแล้ว</div>`;
@@ -318,10 +330,23 @@ function renderOrderTable() {
     if(typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+// 💡 2. แก้ไขระบบเพื่อรองรับการแนบเลขพัสดุ
 window.updateOrderBillStatus = async function(orderIdsArray, status) {
-    if (!confirm(`ยืนยันเปลี่ยนสถานะทั้งบิลเป็น "${status}"?`)) return;
+    let finalStatus = status;
+
+    if (status === 'จัดส่งแล้ว') {
+        const trackingNum = prompt('📦 กรุณากรอก "บริษัทขนส่ง และ เลขพัสดุ" (เช่น Flash: TH123456) \n*หากยังไม่มีให้กดตกลงข้ามไปก่อนได้');
+        if (trackingNum === null) return; // ถ้ายกเลิก
+        
+        if (trackingNum.trim() !== '') {
+            finalStatus = `จัดส่งแล้ว (เลขพัสดุ: ${trackingNum})`; 
+        }
+    } else {
+        if (!confirm(`ยืนยันเปลี่ยนสถานะทั้งบิลเป็น "${status}"?`)) return;
+    }
+
     try {
-        const { error: orderError } = await db.from('order_model').update({ order_status: status }).in('order_id', orderIdsArray);
+        const { error: orderError } = await db.from('order_model').update({ order_status: finalStatus }).in('order_id', orderIdsArray);
         if (orderError) throw orderError;
 
         if (status === 'กำลังผลิต') {
@@ -368,7 +393,6 @@ function setPreviewBox(boxId, pathData) {
     }
 }
 
-// 💡 แก้ไข placeholder ตรงกล่องสื (เอาคำว่า เช่น ออก)
 function createColorRowHTML(name = '', price = '', imgPath = null) {
     let imgHtml = `<img src="" class="color-img-preview absolute inset-0 w-full h-full object-cover hidden pointer-events-none">`;
     let hasImageClass = '';
