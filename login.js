@@ -67,3 +67,34 @@ loginForm.addEventListener('submit', async (e) => {
     }
     btn.innerText = 'เข้าสู่ระบบ';
 });
+
+// ===========================================
+// 💡 3. ฟังก์ชันเปิด/ปิดตาเพื่อดูรหัสผ่าน (แก้บัคกดรัวๆ แล้วค้าง)
+// ===========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePassword');
+
+    // ตรวจสอบว่ามี element ครบก่อนเพิ่ม Event Listener
+    if (passwordInput && togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function () {
+            // สลับ type ระหว่าง password และ text
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // 💡 วิธีแก้บัค: เขียน HTML ของไอคอนใหม่ทับลงไปเลย
+            if (type === 'text') {
+                // กำลังดูรหัสผ่าน ให้ใส่ไอคอน "ตาเปิด"
+                togglePasswordBtn.innerHTML = '<i data-lucide="eye" class="w-5 h-5"></i>';
+            } else {
+                // กำลังซ่อนรหัสผ่าน ให้ใส่ไอคอน "ตาปิด"
+                togglePasswordBtn.innerHTML = '<i data-lucide="eye-off" class="w-5 h-5"></i>';
+            }
+            
+            // สั่งให้ Lucide วาดไอคอนใหม่ที่เราเพิ่งใส่เข้าไป
+            if(window.lucide) {
+                window.lucide.createIcons();
+            }
+        });
+    }
+});

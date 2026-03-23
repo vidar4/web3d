@@ -206,6 +206,9 @@ async function submitOrder() {
     lucide.createIcons();
 
     try {
+        // 💡 ดึงข้อมูล Object ของที่อยู่ที่ลูกค้าเลือก เพื่อบันทึกลง Database
+        const selectedAddressData = userAddresses.find(a => a.id === selectedAddressId);
+
         // วนลูปเตรียมข้อมูลสินค้าทุกชิ้นในตะกร้า
         const orderInserts = cartItems.map(item => ({
             user_id: userId,
@@ -216,7 +219,8 @@ async function submitOrder() {
             order_total_qty: item.qty,
             price_at_order: Math.round(item.total / item.qty), // ราคาต่อชิ้น
             order_total_price: item.total,
-            order_status: 'รอการอนุมัติ' // 💡 ส่งสถานะนี้ไปให้แอดมินยืนยันก่อน
+            order_status: 'รอการอนุมัติ',
+            shipping_address: JSON.stringify(selectedAddressData) // 💡 เพิ่มบรรทัดนี้เพื่อบันทึกที่อยู่!
         }));
 
         // ยิงข้อมูลเข้าตาราง order_model รวดเดียว
