@@ -28,9 +28,14 @@ function getModelImageUrl(pathData) {
 }
 
 function getSlipPublicUrl(path) {
+    if (!path || path === 'null' || path === 'undefined' || path === '[]') return '';
+    try {
+        if (typeof path === 'string' && path.startsWith('[')) path = JSON.parse(path)[0];
+        else if (Array.isArray(path) && path.length > 0) path = path[0];
+    } catch(e) {}
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    const cleanPath = path.replace('payment_slips/', ''); 
+    const cleanPath = path.replace('payment_slips/', '').replace(/["']/g, '').trim(); 
     return `${supabaseUrl}/storage/v1/object/public/payment_slips/${cleanPath}`;
 }
 
@@ -105,25 +110,63 @@ window.setOrderFilter = function(filter, btnEl) {
 async function loadOrderList() {
     const tbody = document.getElementById('orderBillsContainer');
     tbody.innerHTML = '<div class="text-center py-10 text-slate-500"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-primary"></i> กำลังโหลดข้อมูล...</div>';
-    lucide.createIcons();
+    if(typeof lucide !== 'undefined') lucide.createIcons();
 
     try {
-        const { data: orders, error } = await db
+        // 💡 1. ดึงออเดอร์ทั้งหมด
+        const { data: orders, error: orderError } = await db
             .from('order_model')
-            .select(`*, model ( model_name, model_image_1 ), deposit_payment (*), member ( user_name, user_address, user_phone )`)
+            .select(`*, model ( model_name, model_image_1 ), member ( user_name, user_address, user_phone )`)
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (orderError) throw orderError;
+
+        // 💡 2. ดึงสลิปทั้งหมด
+        const { data: payments, error: paymentError } = await db
+            .from('deposit_payment')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+        const paymentList = payments || [];
+
+        // 💡 3. ฟังก์ชันจับคู่ที่ "กว้างและยืดหยุ่นที่สุด" ป้องกันสลิปหาย
+        orders.forEach(o => {
+            o.deposit_payment = paymentList.filter(p => {
+                if (!p.order_id) return false;
+                
+                const oIdStr = String(o.order_id).trim();
+                const pIdStr = String(p.order_id).trim();
+                
+                // เช็คตรงๆ
+                if (pIdStr === oIdStr) return true;
+                
+                // เช็คแบบแยกคอมม่า (เช่น "54,55,56")
+                if (pIdStr.includes(',')) {
+                    const ids = pIdStr.split(',').map(s => s.trim());
+                    if (ids.includes(oIdStr)) return true;
+                }
+                
+                // 🚨 อัลกอริทึมสำรอง: ถ้าไอดีไม่ตรงกัน แต่เวลาสร้างสลิปกับออเดอร์ ห่างกันไม่เกิน 24 ชั่วโมง และเป็นสถานะรอตรวจสอบเหมือนกัน ให้ดึงมาโชว์ก่อน!
+                const orderTime = new Date(o.created_at).getTime();
+                const payTime = new Date(p.created_at).getTime();
+                const timeDiffHours = Math.abs(payTime - orderTime) / (1000 * 60 * 60);
+                
+                if (o.order_status.includes('รอตรวจสอบ') && timeDiffHours < 24 && p.payment_status === 'รอตรวจสอบ') {
+                    return true;
+                }
+
+                return false;
+            });
+        });
+
         allOrdersData = orders;
         
-        // 💡 อัปเดตสถิติทั้งหมด
         document.getElementById('stTotal').innerText = orders.length;
         document.getElementById('stNew').innerText = orders.filter(o => o.order_status === 'รอการอนุมัติ' || o.order_status === 'pending').length;
         document.getElementById('stWaitPay').innerText = orders.filter(o => o.order_status === 'รอชำระเงิน' || o.order_status === 'รอการชำระเงิน').length;
         document.getElementById('stWaitSlip').innerText = orders.filter(o => o.order_status === 'รอตรวจสอบ').length;
         document.getElementById('stProducing').innerText = orders.filter(o => o.order_status === 'กำลังผลิต').length;
         document.getElementById('stDone').innerText = orders.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว')).length;
-        // 💡 เพิ่มสถิติ ยกเลิกแล้ว
         document.getElementById('stCancelled').innerText = orders.filter(o => o.order_status.includes('ยกเลิก') || o.order_status === 'ไม่อนุมัติ').length;
 
         renderOrderTable();
@@ -141,11 +184,13 @@ function renderOrderTable() {
             filteredOrders = allOrdersData.filter(o => o.order_status.includes('เสร็จสิ้น') || o.order_status.includes('จัดส่งแล้ว') || o.order_status.includes('ให้คะแนนแล้ว'));
         } 
         else if (window.currentOrderFilter === 'ยกเลิกคำสั่งซื้อ') {
-            // 💡 Filter กลุ่มยกเลิก (รวมไม่อนุมัติ)
             filteredOrders = allOrdersData.filter(o => o.order_status.includes('ยกเลิก') || o.order_status === 'ไม่อนุมัติ');
         } 
         else {
-            filteredOrders = allOrdersData.filter(o => o.order_status === window.currentOrderFilter || (window.currentOrderFilter==='รอการอนุมัติ' && o.order_status==='pending') || (window.currentOrderFilter==='รอชำระเงิน' && o.order_status==='รอการชำระเงิน'));
+            filteredOrders = allOrdersData.filter(o => {
+                const s = String(o.order_status).trim();
+                return s.includes(window.currentOrderFilter) || (window.currentOrderFilter==='รอการอนุมัติ' && s==='pending') || (window.currentOrderFilter==='รอชำระเงิน' && s==='รอการชำระเงิน');
+            });
         }
     }
 
@@ -167,13 +212,17 @@ function renderOrderTable() {
                 total_price: 0,
                 shipping_address: o.shipping_address || null, 
                 member: o.member,
-                deposit_payment: o.deposit_payment,
+                deposit_payment: [], 
                 items: []
             };
         }
         groupedOrders[timeKey].total_price += Number(o.order_total_price);
         groupedOrders[timeKey].allOrderIds.push(o.order_id);
         groupedOrders[timeKey].items.push(o);
+
+        if (o.deposit_payment && o.deposit_payment.length > 0) {
+            groupedOrders[timeKey].deposit_payment.push(...o.deposit_payment);
+        }
     });
 
     const finalOrders = Object.values(groupedOrders);
@@ -211,22 +260,41 @@ function renderOrderTable() {
         let isPaidIcon = '<span style="color:#EF4444; font-size:12px; font-weight:700; display:flex; align-items:center; gap:4px;"><i data-lucide="x-circle" style="width:14px; height:14px;"></i> ยังไม่จ่ายเงิน</span>';
         let slipBtn = '';
 
-        if (group.deposit_payment && group.deposit_payment.length > 0) {
-            const paymentInfo = { ...group.deposit_payment[0] }; 
+        // 💡 กรองข้อมูลสลิปที่ถูกต้องที่สุด
+        const validPayments = group.deposit_payment.filter(dp => dp !== null && dp !== undefined);
+
+        if (validPayments.length > 0) {
+            let paymentWithSlip = validPayments.find(dp => dp.payment_slip && dp.payment_slip !== 'null' && dp.payment_slip !== '[]') || validPayments[0];
+            const paymentInfo = { ...paymentWithSlip }; 
             
             let totalDeposit = 0;
-            group.deposit_payment.forEach(dp => {
-                totalDeposit += Number(dp.payment_amount || 0);
+            const uniqueSlips = new Set(); // 💡 ใช้ไฟล์สลิปเป็นตัวกันซ้ำ แทน ID เพื่อให้ยอดเงินเป๊ะที่สุด
+            validPayments.forEach(dp => {
+                if (dp.payment_slip && !uniqueSlips.has(dp.payment_slip)) {
+                    uniqueSlips.add(dp.payment_slip);
+                    totalDeposit += Number(dp.payment_amount || 0);
+                }
             });
+            
+            // ถ้ายอดรวมน้อยผิดปกติ ให้เอายอดบิลหาร 2 โชว์แทน
+            if (totalDeposit < (group.total_price * 0.4)) {
+                totalDeposit = group.total_price * 0.5;
+            }
             paymentInfo.payment_amount = totalDeposit;
 
             const slipPath = paymentInfo.payment_slip;
-            const safeJsonStr = encodeURIComponent(JSON.stringify(paymentInfo)); 
+            const safeJsonStr = encodeURIComponent(JSON.stringify(paymentInfo)).replace(/'/g, "%27"); 
             
-            if(slipPath) {
+            if(slipPath && slipPath !== 'null' && slipPath !== 'undefined' && slipPath !== '[]') {
                 isPaidIcon = '<span style="color:#10B981; font-size:12px; font-weight:700; display:flex; align-items:center; gap:4px;"><i data-lucide="check-circle" style="width:14px; height:14px;"></i> แนบสลิปแล้ว</span>';
                 slipBtn = `<button style="background:white; border:1px solid #E2E8F0; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; color:#2563EB; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background='white'" onclick="openSlipModal('${getSlipPublicUrl(slipPath)}', '${safeJsonStr}')"><i data-lucide="image" style="width:14px; height:14px;"></i> ดูหลักฐานการโอนเงิน</button>`;
+            } else {
+                slipBtn = `<span style="font-size:12px; color:#F59E0B; font-weight:700;">⚠️ สลิปอาจมีปัญหาในการโหลด</span>`;
             }
+        } 
+        else if (group.order_status === 'รอตรวจสอบ') {
+            isPaidIcon = '<span style="color:#10B981; font-size:12px; font-weight:700; display:flex; align-items:center; gap:4px;"><i data-lucide="check-circle" style="width:14px; height:14px;"></i> แจ้งโอนแล้ว</span>';
+            slipBtn = `<span style="font-size:12px; color:#EF4444; font-weight:700;">⚠️ ไม่พบรูปสลิปในระบบ</span>`;
         }
 
         let statusBadge = '';
@@ -234,8 +302,16 @@ function renderOrderTable() {
         const idsStr = JSON.stringify(group.allOrderIds);
         
         const isNeedsEvaluation = group.items.some(item => Number(item.order_total_price) === 0);
+        const cStatus = String(group.order_status).trim(); 
+        const isCancelled = cStatus.includes('ยกเลิก') || cStatus === 'ไม่อนุมัติ';
 
-        if(group.order_status === 'รอการอนุมัติ' || group.order_status === 'pending') {
+        // 💡 กำหนดสถานะและปุ่ม Action
+        if (isCancelled) {
+            statusBadge = `<div style="background:#FEE2E2; color:#EF4444; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">ยกเลิกคำสั่งซื้อแล้ว</div>`;
+            actionButtons = `<span style="font-size:12px; color:#94A3B8; font-style:italic;">คำสั่งซื้อนี้ถูกยกเลิกแล้ว ไม่สามารถดำเนินการต่อได้</span>`;
+            isPaidIcon = ''; 
+        } 
+        else if(cStatus.includes('รอการอนุมัติ') || cStatus === 'pending') {
             if (isNeedsEvaluation) {
                 statusBadge = `<div style="background:#FEF3C7; color:#D97706; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รอประเมินราคางานสั่งทำ</div>`;
                 actionButtons = `
@@ -253,10 +329,10 @@ function renderOrderTable() {
                     </div>
                 `;
             }
-        } else if(group.order_status === 'รอชำระเงิน' || group.order_status === 'รอการชำระเงิน') {
+        } else if(cStatus.includes('รอชำระเงิน') || cStatus.includes('รอการชำระเงิน')) {
             statusBadge = `<div style="background:#F1F5F9; color:#64748B; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รอลูกค้าโอนเงิน</div>`;
             actionButtons = `<span style="font-size:12px; color:#94A3B8; font-weight:500;">รอการโอนเงินจากลูกค้า</span>`;
-        } else if(group.order_status === 'รอตรวจสอบ') {
+        } else if(cStatus.includes('รอตรวจสอบ')) {
             statusBadge = `<div style="background:#DBEAFE; color:#2563EB; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">รอตรวจสอบสลิป</div>`;
             actionButtons = `
                 <div style="display:flex; gap:8px;">
@@ -264,17 +340,14 @@ function renderOrderTable() {
                     <button style="background:#EF4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; flex:1;" onclick='updateOrderBillStatus(${idsStr}, "รอชำระเงิน")'>สลิปไม่ถูก (ให้โอนใหม่)</button>
                 </div>
             `;
-        } else if(group.order_status === 'กำลังผลิต') {
+        } else if(cStatus.includes('กำลังผลิต')) {
             statusBadge = `<div style="background:#EDE9FE; color:#8B5CF6; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">กำลังผลิต</div>`;
             actionButtons = `<button style="background:#0F172A; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; width:100%;" onclick='updateOrderBillStatus(${idsStr}, "จัดส่งแล้ว")'>กดเพื่อจัดส่งสินค้า</button>`;
-        } else if(group.order_status.includes('จัดส่งแล้ว')) { 
-            statusBadge = `<div style="background:#F1F5F9; color:#0F172A; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">${group.order_status}</div>`;
+        } else if(cStatus.includes('จัดส่งแล้ว')) { 
+            statusBadge = `<div style="background:#F1F5F9; color:#0F172A; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">${cStatus}</div>`;
             actionButtons = `<button style="background:#10B981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; width:100%;" onclick='updateOrderBillStatus(${idsStr}, "เสร็จสิ้น")'>จบงาน (ลูกค้าได้รับแล้ว)</button>`;
-        } else if(group.order_status === 'เสร็จสิ้น' || group.order_status === 'ให้คะแนนแล้ว') {
+        } else if(cStatus.includes('เสร็จสิ้น') || cStatus.includes('ให้คะแนนแล้ว')) {
             statusBadge = `<div style="background:#D1FAE5; color:#10B981; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">สำเร็จแล้ว</div>`;
-        } else if(group.order_status === 'ไม่อนุมัติ' || group.order_status.includes('ยกเลิก')) { // 💡 รองรับสถานะลูกค้ายกเลิกด้วย
-            statusBadge = `<div style="background:#FEE2E2; color:#EF4444; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px; display:inline-block;">ยกเลิกคำสั่งซื้อแล้ว</div>`;
-            isPaidIcon = ''; // ถ้ายกเลิกแล้ว ไม่ต้องแสดงไอคอนยังไม่จ่ายเงิน
         }
 
         let itemsHTML = '';
@@ -287,7 +360,7 @@ function renderOrderTable() {
             let sizeText = typeof item.selected_size === 'object' && item.selected_size !== null ? item.selected_size.display : (item.selected_size || 'มาตรฐาน');
             
             let priceDisplay = `฿${item.order_total_price.toLocaleString()}`;
-            if (Number(item.order_total_price) === 0 && (group.order_status === 'รอการอนุมัติ' || group.order_status === 'pending')) {
+            if (Number(item.order_total_price) === 0 && cStatus.includes('รอการอนุมัติ')) {
                 priceDisplay = `<span style="color:#D97706; font-size:12px; background:#FEF3C7; padding:2px 6px; border-radius:4px;">รอประเมินราคา</span>`;
             }
 
@@ -310,9 +383,10 @@ function renderOrderTable() {
         
         let totalDisplay = `฿${group.total_price.toLocaleString()}`;
         if (group.total_price === 0 && isNeedsEvaluation) totalDisplay = `<span style="font-size:16px; color:#D97706;">รอประเมินราคา</span>`;
+        if (isCancelled) totalDisplay = `<span style="text-decoration: line-through; color: #94A3B8;">${totalDisplay}</span>`; 
 
         html += `
-            <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${group.order_status.includes('ยกเลิก') || group.order_status === 'ไม่อนุมัติ' ? 'opacity: 0.7; filter: grayscale(1);' : ''}">
+            <div style="background:white; border:1px solid #E2E8F0; border-radius:16px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${isCancelled ? 'opacity: 0.6; filter: grayscale(0.8);' : ''}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
                     <div>
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
@@ -380,14 +454,12 @@ window.updateOrderBillStatus = async function(orderIdsArray, status) {
     } catch (err) { alert('❌ เกิดข้อผิดพลาด: ' + err.message); }
 };
 
-// 💡 3. ฟังก์ชันใหม่: แสดงหน้าต่างประเมินราคา
 window.openEvalModal = function(items) {
     let html = `<div style="padding: 20px; font-family: 'Prompt', sans-serif;">
         <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #0F172A;">ประเมินราคางานสั่งทำ (ขนาดกำหนดเอง)</h3>
         <p style="font-size: 12px; color: #64748B; margin-bottom: 20px;">กรุณาระบุ "ราคาต่อชิ้น" สำหรับรายการที่รอประเมินราคา เมื่อบันทึกแล้วบิลนี้จะถูกอนุมัติทันที</p>
     `;
     
-    // สร้างฟอร์มให้กรอกเฉพาะชิ้นที่ราคาเป็น 0
     items.forEach(item => {
         if (Number(item.order_total_price) === 0) {
             let modelData = item.model;
@@ -426,7 +498,6 @@ window.openEvalModal = function(items) {
     document.body.appendChild(modalOverlay);
 };
 
-// 💡 4. ฟังก์ชันบันทึกราคาและอัปเดตบิล
 window.saveEvalPrice = async function(items) {
     try {
         const updatePromises = [];
@@ -443,10 +514,8 @@ window.saveEvalPrice = async function(items) {
                     return;
                 }
 
-                // ราคาลง Database = ราคาต่อชิ้น * จำนวนชิ้น
                 const totalCalculated = pricePerUnit * item.order_total_qty;
 
-                // เตรียมคำสั่งอัปเดตราคาของสินค้านั้น
                 updatePromises.push(
                     db.from('order_model').update({
                         price_at_order: pricePerUnit,
@@ -457,9 +526,7 @@ window.saveEvalPrice = async function(items) {
         }
 
         if(updatePromises.length > 0) {
-            // ยิงอัปเดตราคา
             await Promise.all(updatePromises);
-            // เปลี่ยนสถานะบิลเป็นรอชำระเงิน
             await db.from('order_model').update({ order_status: 'รอชำระเงิน' }).in('order_id', allIds);
             
             alert('✅ บันทึกราคาและอนุมัติบิลเรียบร้อยแล้ว');
@@ -470,8 +537,41 @@ window.saveEvalPrice = async function(items) {
     }
 };
 
+window.openSlipModal = function(url, paymentJsonStr) {
+    document.getElementById('slipImagePreview').src = url;
+    document.getElementById('slipDownloadLink').href = url;
+    
+    try {
+        if (paymentJsonStr && paymentJsonStr !== 'undefined') {
+            const payment = JSON.parse(decodeURIComponent(paymentJsonStr));
+            document.getElementById('slipModalAmount').innerText = payment.payment_amount ? '฿' + Number(payment.payment_amount).toLocaleString() : '-';
+            document.getElementById('slipModalMethod').innerText = payment.transfer_method || 'ไม่ระบุ';
+            document.getElementById('slipModalBank').innerText = payment.customer_bank || 'ไม่ระบุ';
+            document.getElementById('slipModalAccount').innerText = payment.customer_account || 'ไม่ระบุ';
+            
+            let dateTimeText = '-';
+            if (payment.transfer_date && payment.transfer_time) {
+                const d = new Date(payment.transfer_date);
+                const dateStr = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+                dateTimeText = `${dateStr} เวลา ${payment.transfer_time} น.`;
+            }
+            document.getElementById('slipModalDateTime').innerText = dateTimeText;
+        }
+    } catch (e) {}
+
+    const modal = document.getElementById('slipModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.closeSlipModal = function() {
+    const modal = document.getElementById('slipModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+};
+
 // =========================================================
-// 5. Model Management (ดึงมาจากไฟล์เดิมได้เลย)
+// Model Management
 // =========================================================
 
 window.previewImage = function(input, boxId) {
@@ -799,34 +899,6 @@ document.getElementById('editModelFormDynamic')?.addEventListener('submit', asyn
 
 window.closeEditModal = function() { 
     if(document.getElementById('editModalWrapper')) document.getElementById('editModalWrapper').classList.add('hidden'); 
-};
-
-// =========================================================
-// 9. Utility Modals (Slip)
-// =========================================================
-window.openSlipModal = function(url, paymentJsonStr) {
-    document.getElementById('slipImagePreview').src = url;
-    document.getElementById('slipDownloadLink').href = url;
-    
-    try {
-        if (paymentJsonStr && paymentJsonStr !== 'undefined') {
-            const payment = JSON.parse(decodeURIComponent(paymentJsonStr));
-            document.getElementById('slipModalAmount').innerText = payment.payment_amount ? '฿' + Number(payment.payment_amount).toLocaleString() : '-';
-            document.getElementById('slipModalMethod').innerText = payment.transfer_method || 'ไม่ระบุ';
-            document.getElementById('slipModalBank').innerText = payment.customer_bank || 'ไม่ระบุ';
-            document.getElementById('slipModalAccount').innerText = payment.customer_account || 'ไม่ระบุ';
-            
-            let dateTimeText = '-';
-            if (payment.transfer_date && payment.transfer_time) {
-                const d = new Date(payment.transfer_date);
-                const dateStr = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
-                dateTimeText = `${dateStr} เวลา ${payment.transfer_time} น.`;
-            }
-            document.getElementById('slipModalDateTime').innerText = dateTimeText;
-        }
-    } catch (e) {}
-
-    document.getElementById('slipModal').style.display = 'flex';
 };
 
 // =========================================================

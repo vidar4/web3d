@@ -23,7 +23,6 @@
     <style>
         body { top: 0px !important; background-color: #F8FAFC !important; font-family: 'Prompt', sans-serif !important; margin: 0; padding: 0; overflow-x: hidden; }
 
-        /* 💡 เมนู Navbar */
         .nav-link { color: #64748B; font-weight: 600; transition: color 0.2s; position: relative; text-decoration: none; cursor: pointer; padding: 8px 0; }
         .nav-link:hover { color: #2563EB; }
         .nav-link.active { color: #2563EB; }
@@ -35,25 +34,20 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 💡 ปุ่ม Filter (ตัวกรอง) */
         .filter-btn { padding: 8px 16px; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; background: white; color: #64748B; border: 1px solid #E2E8F0; white-space: nowrap; }
         .filter-btn:hover { background: #F8FAFC; color: #0F172A; }
         .filter-btn.active { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; font-weight: 700; box-shadow: 0 2px 6px rgba(37,99,235,0.1); }
 
-        /* 💡 ตาราง (Responsive) */
         table { width: 100%; min-width: 1000px; border-collapse: collapse; }
         th { text-align: left; padding: 15px; border-bottom: 2px solid #F1F5F9; color: #64748B; font-size: 13px; white-space: nowrap; background: #F8FAFC; }
         td { padding: 15px; border-bottom: 1px solid #F1F5F9; vertical-align: top; }
 
-        /* 💡 ฟอร์มเพิ่มโมเดล */
         .up-box { border: 2px dashed #CBD5E1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #94A3B8; background: #F8FAFC; transition: 0.2s; overflow: hidden; position: relative; }
         .up-box:hover { border-color: #3B82F6; background: #EFF6FF; color: #3B82F6; }
         
-        /* 💡 CSS แก้บัคไอคอนซ้อนรูป */
         .up-box.has-image svg, .up-box.has-image p, .up-box.has-image i { display: none !important; }
         .color-upload-box.has-image svg, .color-upload-box.has-image i { display: none !important; }
 
-        /* ซ่อน Translate */
         .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, #goog-gt-tt, .goog-tooltip { display: none !important; }
         .skiptranslate iframe { display: none !important; }
     </style>
@@ -280,11 +274,11 @@
 
     </main>
 
-    <div id="slipModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div id="slipModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
                 <h3 class="text-xl font-black text-slate-900">ตรวจสอบการชำระเงิน</h3>
-                <button onclick="document.getElementById('slipModal').style.display='none'" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="closeSlipModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <div class="p-6 overflow-y-auto flex flex-col sm:flex-row gap-6">
                 <div class="flex-1 bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
@@ -405,6 +399,6 @@
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-    <script src="admin.js?v=32"></script>
+    <script src="admin.js?v=34"></script>
 </body>
 </html>
