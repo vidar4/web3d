@@ -284,10 +284,36 @@ window.handleCheckout = function() {
     let selectedItems = [];
     checkboxes.forEach(cb => {
         const index = cb.getAttribute('data-index');
-        if (cart[index]) selectedItems.push(cart[index]);
+        const item = cart[index];
+        if (item) {
+            const qty = Number(item.qty || item.order_total_qty || 1);
+            const unitPrice = Number(item.price || item.price_at_order || 0);
+            const totalPrice = Number(item.total || item.order_total_price || (unitPrice * qty));
+            selectedItems.push({
+                ...item,
+                cart_id: item.cart_id || Date.now(),
+                model_id: item.model_id,
+                model_name: item.name || item.model_name,
+                name: item.name || item.model_name,
+                selected_material: item.material || item.selected_material || 'PLA',
+                material: item.material || item.selected_material || 'PLA',
+                selected_color: item.color || item.selected_color || 'มาตรฐาน',
+                color: item.color || item.selected_color || 'มาตรฐาน',
+                selected_size: item.size || item.selected_size || 'มาตรฐาน',
+                size: item.size || item.selected_size || 'มาตรฐาน',
+                order_total_qty: qty,
+                qty: qty,
+                price_at_order: unitPrice,
+                price: unitPrice,
+                order_total_price: totalPrice,
+                total: totalPrice,
+                image: item.image || item.model_image || '',
+                model_image: item.image || item.model_image || ''
+            });
+        }
     });
     
     // เซฟของที่เลือกลง LocalStorage แล้วเปลี่ยนหน้า
     localStorage.setItem('selected_for_checkout', JSON.stringify(selectedItems));
     window.location.href = 'payment.html'; 
-}
+};

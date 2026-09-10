@@ -209,7 +209,7 @@ async function fetchOrders(userId) {
 
             const orderCard = document.createElement('div');
             // 💡 ถ้าเป็นบิลยกเลิก ให้โชว์เป็นสีเทาจางๆ
-            orderCard.className = `${cardBg} p-6 md:p-8 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border ${borderCol} mb-6 relative overflow-hidden transition-colors ${isRejected ? 'opacity-60 grayscale-[0.8]' : ''}`;
+            orderCard.className = `${cardBg} p-4 sm:p-6 md:p-8 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border ${borderCol} mb-6 relative overflow-hidden transition-colors max-w-full ${isRejected ? 'opacity-60 grayscale-[0.8]' : ''}`;
 
             orderCard.innerHTML = `
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 mb-4 gap-2">
@@ -242,8 +242,8 @@ async function fetchOrders(userId) {
                     </div>
                 </div>
 
-                <div class="w-full overflow-x-auto hide-scrollbar pb-4 pt-2">
-                    <div class="min-w-[600px] md:min-w-full relative">
+                <div class="w-full overflow-x-auto hide-scrollbar pb-4 pt-2 -mx-2 px-2 sm:mx-0 sm:px-0">
+                    <div class="min-w-[480px] sm:min-w-[560px] md:min-w-full relative">
                         ${stepperHTML}
                     </div>
                 </div>
@@ -343,7 +343,7 @@ function generateStepper(currentStatus, orderId) {
                     <i data-lucide="${step.icon}" class="w-5 h-5 md:w-6 md:h-6 ${iconColor}"></i>
                 </div>
                 <div class="mt-3 h-10 flex items-start justify-center">
-                    <span class="text-[11px] md:text-sm ${textColor} leading-snug">${step.label}</span>
+                    <span class="text-[10px] sm:text-[11px] md:text-sm ${textColor} leading-tight break-words max-w-[85px] sm:max-w-[100px] block">${step.label}</span>
                 </div>
                 ${buttonHTML}
             </div>
@@ -366,6 +366,44 @@ function generateStepper(currentStatus, orderId) {
 }
 
 // 6. Action Handlers
+window.acceptModel = async function(orderId) {
+    const { data: targetOrder, error: fetchErr } = await db
+        .from('order_model')
+        .select('order_id, user_id, created_at, order_status')
+        .eq('order_id', orderId)
+        .single();
+    if (fetchErr) throw fetchErr;
+
+    if (targetOrder && targetOrder.created_at) {
+        const { data: userOrders, error: listErr } = await db
+            .from('order_model')
+            .select('order_id, created_at, order_status')
+            .eq('user_id', targetOrder.user_id);
+        if (listErr) throw listErr;
+
+        const targetMinute = targetOrder.created_at.substring(0, 16);
+        const groupOrderIds = (userOrders || [])
+            .filter(o => o.created_at && (o.created_at.substring(0, 16) === targetMinute || o.created_at === targetOrder.created_at) && o.order_status === 'จัดส่งแล้ว')
+            .map(o => o.order_id);
+
+        if (groupOrderIds.length > 0) {
+            const { error: updateErr } = await db
+                .from('order_model')
+                .update({ order_status: 'เสร็จสิ้น' })
+                .in('order_id', groupOrderIds);
+            if (updateErr) throw updateErr;
+            return groupOrderIds;
+        }
+    }
+
+    const { error: fallbackErr } = await db
+        .from('order_model')
+        .update({ order_status: 'เสร็จสิ้น' })
+        .eq('order_id', orderId);
+    if (fallbackErr) throw fallbackErr;
+    return [orderId];
+};
+
 window.handleOrderAction = async function(action, orderId) {
     if (action === 'ให้คะแนน') {
         window.location.href = `rate.html?id=${orderId}`;
@@ -377,10 +415,9 @@ window.handleOrderAction = async function(action, orderId) {
     
     try {
         if (action === 'ยอมรับโมเดล') {
-            const { error } = await db.from('order_model').update({ order_status: 'เสร็จสิ้น' }).eq('order_id', orderId);
-            if (error) throw error;
+            await window.acceptModel(orderId);
             alert('ยืนยันการรับสินค้าสำเร็จ! กรุณาให้คะแนนเพื่อเสร็จสิ้นกระบวนการ');
             location.reload(); 
         }
     } catch (err) { alert(err.message); }
-}
+};

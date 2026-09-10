@@ -591,19 +591,20 @@ async function loadOrderHistory() {
                 </button>`;
 
             itemsHTML += `
-                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px; width: 100%; padding: 15px 0; ${index > 0 ? 'border-top: 1px dashed #e2e8f0;' : ''}">
-                    <img src="${imgUrl}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; background: white; flex-shrink: 0;" onerror="this.src='https://via.placeholder.com/70'">
-                    
-                    <div style="flex: 1; min-width: 150px;">
-                        <h3 style="margin: 0 0 4px 0; font-size: 15px; color: #1e293b; font-weight: 700;">${o.model?.model_name || '3D Model'}</h3>
-                        <p style="margin: 0; font-size: 12px; color: #64748b;">สี: <b>${o.selected_color || '-'}</b> | วัสดุ: <b>${o.selected_material || '-'}</b></p>
-                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${sizeDisplay}</div>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full py-4 ${index > 0 ? 'border-t border-dashed border-slate-200' : ''}">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <img src="${imgUrl}" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-slate-200 bg-white shrink-0" onerror="this.src='https://via.placeholder.com/70'">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-bold text-sm sm:text-base text-slate-900 truncate mb-0.5">${o.model?.model_name || '3D Model'}</h3>
+                            <p class="text-xs text-slate-500">สี: <b class="text-slate-700">${o.selected_color || '-'}</b> | วัสดุ: <b class="text-slate-700">${o.selected_material || '-'}</b></p>
+                            <div class="text-[11px] text-slate-400 mt-0.5">${sizeDisplay}</div>
+                        </div>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; min-width: 100px;">
-                        <div style="font-weight: 700; color: #475569; font-size: 13px;">${pricePerUnitDisplay} <span style="font-weight:400">x${o.order_total_qty}</span></div>
-                        <div style="font-weight: 800; color: #1e293b; font-size: 15px; margin-bottom: 6px;">${priceDisplay}</div>
-                        <div style="display: flex; gap: 6px;">${itemActionsHTML}</div>
+                    <div class="flex sm:flex-col justify-between sm:items-end items-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        <div class="text-xs font-bold text-slate-500">${pricePerUnitDisplay} <span class="font-normal text-[11px]">x${o.order_total_qty}</span></div>
+                        <div class="font-black text-slate-900 text-base sm:text-lg mb-1">${priceDisplay}</div>
+                        <div class="flex gap-2">${itemActionsHTML}</div>
                     </div>
                 </div>`;
         });
@@ -614,7 +615,7 @@ async function loadOrderHistory() {
         if (group.total_price === 0 && group.order_status === 'รอการอนุมัติ') totalDisplay = `<span style="font-size:16px; color:#D97706;">รอประเมินราคา</span>`;
 
         container.innerHTML += `
-            <div class="notranslate" style="background: #ffffff; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); ${isCanceled ? 'opacity: 0.7; filter: grayscale(1);' : ''}">
+            <div class="notranslate" style="background: #ffffff; border: 1px solid #f1f5f9; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); ${isCanceled ? 'opacity: 0.7; filter: grayscale(1);' : ''}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f8fafc;">
                     <div style="color: #64748b; font-size: 13px;">
                         รหัสอ้างอิงบิล: <b style="color:#1e293b; font-size:15px;">#${group.mainOrderId}</b> 
@@ -630,7 +631,7 @@ async function loadOrderHistory() {
                     </div>
                 </div>
 
-                <div style="background: #f8fafc; border-radius: 12px; padding: 0 20px; border: 1px solid #f1f5f9;">
+                <div style="background: #f8fafc; border-radius: 12px; padding: 0 12px; border: 1px solid #f1f5f9;">
                     ${itemsHTML}
                 </div>
 

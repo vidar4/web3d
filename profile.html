@@ -40,9 +40,13 @@
         }
         .lang-btn:hover { background: #eff6ff; border-color: #3b82f6; color: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
         
-        .profile-layout { display: flex; flex-wrap: wrap; max-width: 1200px; margin: 30px auto; width: 90%; gap: 3%; }
-        .profile-sidebar { flex: 0 0 25%; min-width: 260px; }
-        .profile-content { flex: 1; min-width: 320px; }
+        .profile-layout { display: flex; flex-wrap: wrap; max-width: 1200px; margin: 20px auto; width: 100%; padding: 0 16px; gap: 20px; box-sizing: border-box; }
+        .profile-sidebar { flex: 0 0 25%; min-width: 0; width: 100%; }
+        .profile-content { flex: 1; min-width: 0; width: 100%; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #F1F5F9; box-sizing: border-box; word-break: break-word; overflow-wrap: anywhere; }
+        @media (min-width: 640px) {
+            .card { padding: 30px; border-radius: 20px; }
+        }
 
         .back-link { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #64748B; font-size: 0.9rem; margin-bottom: 20px; font-weight: 600; }
         .profile-menu { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #F1F5F9; }
@@ -82,6 +86,7 @@
             .form-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -92,6 +97,9 @@
                 <h1>3D TECH</h1>
             </a>
             <div class="header-icons">
+                <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="md:hidden p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-xl transition flex items-center justify-center focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
                 <button onclick="toggleLanguage()" class="lang-btn group">
                     <i data-lucide="globe" class="w-4 h-4"></i>
                     <span id="lang-display">TH</span>
@@ -320,5 +328,6 @@
 
     <script src="profile.js?v=16"></script>
     <script>lucide.createIcons();</script>
+    <script src="navbar.js"></script>
 </body>
 </html>

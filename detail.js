@@ -29,9 +29,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 function checkUser() {
     const user = localStorage.getItem('user_name');
     const welcomeEl = document.getElementById('welcomeUser');
-    if(user && welcomeEl) {
+    if (user && welcomeEl) {
         welcomeEl.innerText = user;
         welcomeEl.classList.remove('hidden');
+        if (welcomeEl.parentElement && welcomeEl.parentElement.tagName === 'A') {
+            welcomeEl.parentElement.href = 'profile.html';
+        }
     }
 }
 
@@ -57,30 +60,90 @@ async function loadModelDetail(id) {
     }
 }
 
+
+let currentMediaView = '3d';
+let model3dUrl = null;
+
+window.switchMediaView = function(mode) {
+    currentMediaView = mode;
+    const btn3d = document.getElementById('btn-view-3d');
+    const btn2d = document.getElementById('btn-view-2d');
+    const mvContainer = document.getElementById('model-viewer-container');
+    const imgContainer = document.getElementById('image-viewer-container');
+
+    if (mode === '3d' && model3dUrl) {
+        if (mvContainer) mvContainer.classList.remove('hidden');
+        if (imgContainer) imgContainer.classList.add('hidden');
+        if (btn3d) {
+            btn3d.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-primary shadow-sm";
+        }
+        if (btn2d) {
+            btn2d.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-slate-900";
+        }
+    } else {
+        if (mvContainer) mvContainer.classList.add('hidden');
+        if (imgContainer) imgContainer.classList.remove('hidden');
+        if (btn3d) {
+            btn3d.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-slate-900";
+        }
+        if (btn2d) {
+            btn2d.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-primary shadow-sm";
+        }
+    }
+    if (window.lucide) window.lucide.createIcons();
+};
 function renderUI(model) {
+    const categoryMap = {
+        'characters': 'ฟิกเกอร์ & ตัวละคร (Characters)',
+        'scifi': 'ไซไฟ & ยานพาหนะ (Sci-Fi & Vehicles)',
+        'architecture': 'สถาปัตยกรรม (Architecture)',
+        'interior': 'ตกแต่งภายใน & เฟอร์นิเจอร์ (Interior & Decor)',
+        'props': 'อุปกรณ์ & แกดเจ็ต (Props & Gadgets)',
+        'nature': 'ธรรมชาติ & สัตว์ (Nature & Animals)',
+        'art': 'ศิลปะ & ประติมากรรม (Art & Sculptures)',
+        'all': 'ทั้งหมด'
+    };
+
     document.getElementById('detail-name').innerText = model.model_name || 'ชื่อโมเดล';
-    document.getElementById('detail-category').innerText = model.parent_id || 'หมวดหมู่ทั่วไป';
+    document.getElementById('detail-category').innerText = categoryMap[model.parent_id] || model.parent_id || 'หมวดหมู่ทั่วไป';
     
     const imgCols = ['model_image_1', 'model_image_2', 'model_image_3', 'model_image_4'];
     let validImages = [];
+    model3dUrl = null;
 
     imgCols.forEach(col => {
         let rawData = model[col];
         if (!rawData) return;
         let strData = String(rawData).trim();
         if (strData === 'null' || strData === '[]' || strData === '""' || strData === '') return;
+        
+        let candidate = null;
         try {
             let parsed = JSON.parse(strData);
             if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]) {
-                validImages.push(String(parsed[0]).trim());
+                candidate = String(parsed[0]).trim();
             } else if (typeof parsed === 'string' && parsed !== '') {
-                validImages.push(parsed.trim());
+                candidate = parsed.trim();
             }
         } catch (e) {
-            let cleanStr = strData.replace(/["'\[\]\\]/g, '').trim(); 
-            if (cleanStr) validImages.push(cleanStr);
+            let cleanStr = strData.replace(/["'[]\]/g, '').trim(); 
+            if (cleanStr) candidate = cleanStr;
+        }
+
+        if (candidate) {
+            if (candidate.toLowerCase().includes('.glb') || candidate.toLowerCase().includes('.gltf')) {
+                model3dUrl = candidate;
+            } else {
+                validImages.push(candidate);
+            }
         }
     });
+
+    if (!model3dUrl && model.model_image_4) {
+        let raw4 = String(model.model_image_4);
+        let m = raw4.match(/https?:\/\/[^\s"',\]]+(?:\.glb|\.gltf)/i);
+        if (m) model3dUrl = m[0];
+    }
 
     let finalImages = [...new Set(validImages)].slice(0, 4);
 
@@ -93,7 +156,7 @@ function renderUI(model) {
     if (finalImages.length > 0) {
         mainImg.src = getModelImageUrl(finalImages[0]);
         mainImg.onload = () => {
-            loader.style.display = 'none';
+            if (loader) loader.style.display = 'none';
             mainImg.classList.remove('opacity-0');
         };
 
@@ -111,12 +174,64 @@ function renderUI(model) {
                 mainImg.src = thumbUrl;
                 Array.from(subContainer.children).forEach(child => child.className = `${baseClass} ${inactiveClass}`);
                 thumb.className = `${baseClass} ${activeClass}`;
+                window.switchMediaView('2d');
             };
             subContainer.appendChild(thumb);
         });
     } else {
         mainImg.src = 'https://placehold.co/600x600/f8fafc/94a3b8?text=No+Image';
-        mainImg.onload = () => { loader.style.display = 'none'; mainImg.classList.remove('opacity-0'); };
+        mainImg.onload = () => { if (loader) loader.style.display = 'none'; mainImg.classList.remove('opacity-0'); };
+    }
+
+    // Initialize 3D Viewer if asset exists
+    const mv = document.getElementById('detail-model-viewer');
+    const viewSelector = document.getElementById('view-mode-selector');
+
+    if (model3dUrl && mv) {
+        mv.src = model3dUrl;
+        if (finalImages.length > 0) {
+            mv.setAttribute('poster', getModelImageUrl(finalImages[0]));
+        }
+        mv.addEventListener('error', (err) => {
+            console.warn('3D Model failed to load, falling back to 2D view:', err);
+            window.switchMediaView('2d');
+        });
+
+        const rotateBtn = document.getElementById('mv-rotate-btn');
+        if (rotateBtn) {
+            rotateBtn.onclick = () => {
+                mv.autoRotate = !mv.autoRotate;
+            };
+        }
+
+        const resetBtn = document.getElementById('mv-reset-btn');
+        if (resetBtn) {
+            resetBtn.onclick = () => {
+                mv.cameraOrbit = 'auto auto auto';
+                mv.cameraTarget = 'auto auto auto';
+                if (typeof mv.resetTurntableRotation === 'function') mv.resetTurntableRotation();
+            };
+        }
+
+        const fullBtn = document.getElementById('mv-fullscreen-btn');
+        if (fullBtn) {
+            fullBtn.onclick = () => {
+                const container = document.getElementById('model-viewer-container');
+                if (container) {
+                    if (!document.fullscreenElement) {
+                        container.requestFullscreen().catch(err => console.log(err));
+                    } else {
+                        document.exitFullscreen().catch(err => console.log(err));
+                    }
+                }
+            };
+        }
+
+        if (viewSelector) viewSelector.classList.remove('hidden');
+        window.switchMediaView('3d');
+    } else {
+        if (viewSelector) viewSelector.classList.add('hidden');
+        window.switchMediaView('2d');
     }
 
     renderOptions('color-options-container', model.model_color, 'color');
@@ -127,8 +242,6 @@ function renderUI(model) {
     if(typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// =========================================================
-// 3. ระบบตัวเลือก (สี / วัสดุ / ขนาด)
 // =========================================================
 function renderOptions(containerId, data, type) {
     const container = document.getElementById(containerId);

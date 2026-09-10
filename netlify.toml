@@ -1,0 +1,106 @@
+# ==============================================================================
+# Web3D E-Commerce & Interactive Showcase Platform - Netlify Production Config
+# ==============================================================================
+
+[build]
+  publish = "."
+  command = "echo 'Deploying Web3D Static Platform...'"
+
+# Clean Route Rewrites for Multi-Page Architecture
+[[redirects]]
+  from = "/cart"
+  to = "/cart.html"
+  status = 200
+
+[[redirects]]
+  from = "/product-detail"
+  to = "/product-detail.html"
+  status = 200
+
+[[redirects]]
+  from = "/payment"
+  to = "/payment.html"
+  status = 200
+
+[[redirects]]
+  from = "/pay-deposit"
+  to = "/pay-deposit.html"
+  status = 200
+
+[[redirects]]
+  from = "/to-pay"
+  to = "/to-pay.html"
+  status = 200
+
+[[redirects]]
+  from = "/status"
+  to = "/status.html"
+  status = 200
+
+[[redirects]]
+  from = "/profile"
+  to = "/profile.html"
+  status = 200
+
+[[redirects]]
+  from = "/login"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/register"
+  to = "/register.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/rate"
+  to = "/rate.html"
+  status = 200
+
+# Global Security & Content Policy Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://ajax.googleapis.com https://cdn.jsdelivr.net https://translate.google.com https://translate.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://ucvxitvclmcsnktfrbvv.supabase.co https://*.supabase.co https://ajax.googleapis.com https://translate.googleapis.com blob:; media-src 'self' blob: data: https:; frame-src 'self' https://translate.google.com; object-src 'none'; base-uri 'self';"
+
+# HTML Caching Strategy (Must Revalidate for Instant Updates)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Static Asset Caching
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# 3D Binary Model CORS & MIME Headers
+[[headers]]
+  for = "/*.glb"
+  [headers.values]
+    Content-Type = "model/gltf-binary"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/*.gltf"
+  [headers.values]
+    Content-Type = "model/gltf+json"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"

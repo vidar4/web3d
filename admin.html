@@ -51,6 +51,7 @@
         .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, #goog-gt-tt, .goog-tooltip { display: none !important; }
         .skiptranslate iframe { display: none !important; }
     </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="text-slate-800">
 
@@ -70,6 +71,9 @@
                 </div>
 
                 <div class="flex items-center gap-3 sm:gap-6 shrink-0">
+                    <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-xl transition flex items-center justify-center focus:outline-none">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
                     <button onclick="toggleLanguage()" class="lang-btn group">
                         <i data-lucide="globe" class="w-4 h-4 text-slate-400 group-hover:text-primary"></i>
                         <span id="lang-display">TH</span>
@@ -180,12 +184,15 @@
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
                         <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ประเภท</label>
                         <select id="modelCategory" class="flex-1 border border-slate-300 rounded-lg p-3 outline-none focus:border-primary bg-white" required>
-                            <option value="" disabled selected>-- คลิกเพื่อเลือก --</option>
-                            <option value="กรวย">กรวย</option><option value="กระถางต้นไม้">กระถางต้นไม้</option>
-                            <option value="กล่อง">กล่องใส่ของ</option><option value="ของตกแต่ง">ของตกแต่ง</option>
-                            <option value="ของเล่น">ของเล่น</option><option value="พาเหลด">พาเหลด</option>
-                            <option value="พวงกุญแจ">พวงกุญแจ</option><option value="โมเดล">โมเดล / ฟิกเกอร์</option>
-                            <option value="อื่นๆ">อื่นๆ</option>
+                            <option value="" disabled selected>-- คลิกเพื่อเลือกหมวดหมู่ --</option>
+                            <option value="characters">Characters & Figures (ฟิกเกอร์ & ตัวละคร)</option>
+                            <option value="scifi">Sci-Fi & Vehicles (ไซไฟ & ยานพาหนะ)</option>
+                            <option value="architecture">Architecture (สถาปัตยกรรม)</option>
+                            <option value="interior">Interior & Decor (ตกแต่งภายใน & เฟอร์นิเจอร์)</option>
+                            <option value="props">Props & Gadgets (อุปกรณ์ & แกดเจ็ต)</option>
+                            <option value="nature">Nature & Animals (ธรรมชาติ & สัตว์)</option>
+                            <option value="art">Art & Sculptures (ศิลปะ & ประติมากรรม)</option>
+                            <option value="general">ทั่วไป (General / Legacy)</option>
                         </select>
                     </div>
 
@@ -340,11 +347,15 @@
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
                         <label class="w-full sm:w-28 font-bold text-slate-900 pt-2 shrink-0">ประเภท</label>
                         <select id="editModelCategory" class="flex-1 border border-slate-300 rounded-lg p-3 outline-none bg-white" required>
-                            <option value="กรวย">กรวย</option><option value="กระถางต้นไม้">กระถางต้นไม้</option>
-                            <option value="กล่อง">กล่องใส่ของ</option><option value="ของตกแต่ง">ของตกแต่ง</option>
-                            <option value="ของเล่น">ของเล่น</option><option value="พาเหลด">พาเหลด</option>
-                            <option value="พวงกุญแจ">พวงกุญแจ</option><option value="โมเดล">โมเดล / ฟิกเกอร์</option>
-                            <option value="อื่นๆ">อื่นๆ</option>
+                            <option value="" disabled selected>-- คลิกเพื่อเลือกหมวดหมู่ --</option>
+                            <option value="characters">Characters & Figures (ฟิกเกอร์ & ตัวละคร)</option>
+                            <option value="scifi">Sci-Fi & Vehicles (ไซไฟ & ยานพาหนะ)</option>
+                            <option value="architecture">Architecture (สถาปัตยกรรม)</option>
+                            <option value="interior">Interior & Decor (ตกแต่งภายใน & เฟอร์นิเจอร์)</option>
+                            <option value="props">Props & Gadgets (อุปกรณ์ & แกดเจ็ต)</option>
+                            <option value="nature">Nature & Animals (ธรรมชาติ & สัตว์)</option>
+                            <option value="art">Art & Sculptures (ศิลปะ & ประติมากรรม)</option>
+                            <option value="general">ทั่วไป (General / Legacy)</option>
                         </select>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
@@ -400,5 +411,6 @@
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <script src="admin.js?v=34"></script>
+    <script src="navbar.js"></script>
 </body>
 </html>

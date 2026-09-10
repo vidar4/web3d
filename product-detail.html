@@ -7,6 +7,7 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -64,10 +65,13 @@
                         <i data-lucide="shopping-cart" class="w-6 h-6"></i>
                         <span id="cartBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold border border-white hidden shadow-sm">0</span>
                     </a>
-                    <a href="profile.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 sm:px-4 py-2 rounded-full font-medium transition flex items-center gap-2 border border-slate-200">
+                    <a href="login.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 sm:px-4 py-2 rounded-full font-medium transition flex items-center gap-2 border border-slate-200">
                         <div class="bg-primary rounded-full p-1 text-white shadow-sm"><i data-lucide="user" class="w-4 h-4"></i></div>
                         <span id="welcomeUser" class="hidden sm:inline text-sm font-bold">เข้าสู่ระบบ</span>
                     </a>
+                    <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="md:hidden p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-xl transition flex items-center justify-center focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
                 </div>
             </div>
         </div>
@@ -81,7 +85,51 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-white p-6 md:p-8 rounded-[24px] border border-slate-200 shadow-sm">
             
             <div class="lg:col-span-5 flex flex-col gap-4">
-                <div class="w-full aspect-square bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center relative group">
+                <!-- 3D / 2D View Mode Selector -->
+                <div id="view-mode-selector" class="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button id="btn-view-3d" type="button" onclick="switchMediaView('3d')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-primary shadow-sm">
+                        <i data-lucide="box" class="w-4 h-4"></i>
+                        <span>โมเดล 3D (Interactive)</span>
+                    </button>
+                    <button id="btn-view-2d" type="button" onclick="switchMediaView('2d')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-slate-900">
+                        <i data-lucide="image" class="w-4 h-4"></i>
+                        <span>รูปถ่าย 2D</span>
+                    </button>
+                </div>
+
+                <!-- 3D Model Viewer Container -->
+                <div id="model-viewer-container" class="w-full aspect-square bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden relative">
+                    <model-viewer id="detail-model-viewer"
+                        src=""
+                        alt="3D Interactive Model"
+                        auto-rotate
+                        camera-controls
+                        shadow-intensity="1"
+                        shadow-softness="0.5"
+                        exposure="1"
+                        touch-action="pan-y"
+                        class="w-full h-full"
+                        loading="lazy">
+                        <div slot="poster" id="mv-poster" class="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 gap-2">
+                            <i data-lucide="loader-2" class="w-8 h-8 text-primary animate-spin"></i>
+                            <span class="text-xs font-medium">กำลังเตรียมโมเดล 3D...</span>
+                        </div>
+                        <div class="absolute bottom-3 right-3 flex items-center gap-1.5 z-20 bg-white/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-200 shadow-sm">
+                            <button id="mv-rotate-btn" type="button" title="สลับการหมุนอัตโนมัติ" class="p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg transition active:scale-95">
+                                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                            </button>
+                            <button id="mv-reset-btn" type="button" title="รีเซ็ตมุมมอง" class="p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg transition active:scale-95">
+                                <i data-lucide="compass" class="w-4 h-4"></i>
+                            </button>
+                            <button id="mv-fullscreen-btn" type="button" title="ดูแบบเต็มจอ" class="p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg transition active:scale-95">
+                                <i data-lucide="maximize" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </model-viewer>
+                </div>
+
+                <!-- 2D Image View Container -->
+                <div id="image-viewer-container" class="w-full aspect-square bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center relative group hidden">
                     <div id="image-loader" class="absolute inset-0 flex items-center justify-center bg-slate-50 z-10">
                         <i data-lucide="loader-2" class="w-8 h-8 text-primary animate-spin"></i>
                     </div>
@@ -314,5 +362,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="detail.js?v=9"></script> 
+    <script src="navbar.js"></script>
 </body>
 </html>

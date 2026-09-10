@@ -94,6 +94,9 @@
                         <div class="bg-primary rounded-full p-1 text-white"><i data-lucide="user" class="w-4 h-4"></i></div>
                         <span id="welcomeUser" class="hidden sm:inline"></span>
                     </a>
+                    <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="md:hidden p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-xl transition flex items-center justify-center focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
                 </div>
             </div>
         </div>
@@ -144,17 +147,15 @@
             
             <div class="w-full md:w-64 shrink-0 sticky top-24">
                 <h3 class="text-xl font-bold text-slate-900 mb-6">หมวดหมู่โมเดล</h3>
-                <ul class="flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0" id="category-list">
-                    <li><button onclick="filterCategory('all', this)" class="category-tab active w-full text-left px-4 py-3 rounded-lg font-medium text-primary bg-blue-50 transition-colors whitespace-nowrap">ทั้งหมด (All)</button></li>
-                    <li><button onclick="filterCategory('โมเดล', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">โมเดล / ฟิกเกอร์</button></li>
-                    <li><button onclick="filterCategory('กระถางต้นไม้', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">กระถางต้นไม้</button></li>
-                    <li><button onclick="filterCategory('ของตกแต่ง', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">ของตกแต่ง</button></li>
-                    <li><button onclick="filterCategory('ของเล่น', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">ของเล่น</button></li>
-                    <li><button onclick="filterCategory('พวงกุญแจ', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">พวงกุญแจ</button></li>
-                    <li><button onclick="filterCategory('กล่อง', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">กล่องใส่ของ</button></li>
-                    <li><button onclick="filterCategory('กรวย', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">กรวย</button></li>
-                    <li><button onclick="filterCategory('พาเหลด', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">พาเหลด</button></li>
-                    <li><button onclick="filterCategory('อื่นๆ', this)" class="category-tab w-full text-left px-4 py-3 rounded-lg font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">อื่นๆ</button></li>
+                <ul class="flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0 hide-scrollbar" id="category-list">
+                    <li><button onclick="filterCategory('all', this)" class="category-tab active w-full text-left px-4 py-3 rounded-xl font-medium text-primary bg-blue-50 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="grid" class="w-4 h-4"></i> ทั้งหมด (All)</button></li>
+                    <li><button onclick="filterCategory('characters', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="user" class="w-4 h-4"></i> ฟิกเกอร์ & ตัวละคร (Characters)</button></li>
+                    <li><button onclick="filterCategory('scifi', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="rocket" class="w-4 h-4"></i> ไซไฟ & ยานพาหนะ (Sci-Fi)</button></li>
+                    <li><button onclick="filterCategory('architecture', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="landmark" class="w-4 h-4"></i> สถาปัตยกรรม (Architecture)</button></li>
+                    <li><button onclick="filterCategory('interior', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="armchair" class="w-4 h-4"></i> ตกแต่งภายใน & เฟอร์นิเจอร์ (Interior)</button></li>
+                    <li><button onclick="filterCategory('props', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="wrench" class="w-4 h-4"></i> อุปกรณ์ & แกดเจ็ต (Props)</button></li>
+                    <li><button onclick="filterCategory('nature', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="trees" class="w-4 h-4"></i> ธรรมชาติ & สัตว์ (Nature)</button></li>
+                    <li><button onclick="filterCategory('art', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="palette" class="w-4 h-4"></i> ศิลปะ & ประติมากรรม (Art)</button></li>
                 </ul>
             </div>
 
@@ -237,5 +238,6 @@
             }
         }
     </script>
+    <script src="navbar.js"></script>
 </body>
 </html>

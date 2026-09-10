@@ -1649,3 +1649,94 @@ body { top: 0px !important; }
     background: #F8FAFC !important;
     font-size: 13px !important;
 }
+
+/* ==========================================================================
+   Milestone 3: Design System Tokens, Skeleton, 3D Viewer & Mobile Drawer
+   ========================================================================== */
+
+/* Mobile-Friendly Overflow & Viewport Safety */
+html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Touch targets standard (>=44px) */
+button, a.btn, .nav-link, .menu-item, .lang-btn, .category-tab {
+    min-height: 38px;
+    touch-action: manipulation;
+}
+
+/* 3D Model Viewer Component Standards */
+model-viewer {
+    width: 100%;
+    height: 100%;
+    --poster-color: transparent;
+    outline: none;
+    display: block;
+    background: radial-gradient(circle at center, #F8FAFC 0%, #EEF2F6 100%);
+    border-radius: 1rem;
+}
+
+model-viewer::part(default-progress-bar) {
+    background-color: var(--primary-color, #2563EB);
+    height: 3px;
+}
+
+/* Skeleton Loading Shimmer States */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+    background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite ease-in-out;
+    border-radius: 0.75rem;
+}
+
+.skeleton-card {
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 1.5rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Empty States */
+.empty-state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3.5rem 1.5rem;
+    text-align: center;
+    background: white;
+    border: 1px dashed #CBD5E1;
+    border-radius: 1.5rem;
+}
+
+.empty-state-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+    background: #EFF6FF;
+    color: #2563EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+/* Mobile Drawer Responsive Transitions */
+#mobile-drawer {
+    box-shadow: -8px 0 30px rgba(15, 23, 42, 0.15);
+}
+
+@media (max-width: 640px) {
+    .hide-scrollbar {
+        -webkit-overflow-scrolling: touch;
+    }
+}

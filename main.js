@@ -68,13 +68,17 @@ async function loadProducts(category = 'all', searchQuery = '') {
     const grid = document.getElementById('productGrid');
     if (!grid) return;
 
-    grid.innerHTML = `
-        <div class="col-span-full py-20 text-center">
-            <i data-lucide="loader" class="w-10 h-10 animate-spin mx-auto mb-4 text-primary"></i>
-            <p class="text-slate-500 font-medium">กำลังโหลดข้อมูลและคะแนนรีวิว...</p>
+    grid.innerHTML = Array(8).fill(0).map(() => `
+        <div class="skeleton-card">
+            <div class="w-full aspect-square skeleton-shimmer rounded-2xl"></div>
+            <div class="h-4 skeleton-shimmer w-3/4 rounded mt-3"></div>
+            <div class="h-4 skeleton-shimmer w-1/2 rounded mt-2"></div>
+            <div class="flex justify-between items-center mt-4 pt-2 border-t border-slate-100">
+                <div class="h-6 skeleton-shimmer w-1/3 rounded"></div>
+                <div class="h-9 w-9 skeleton-shimmer rounded-xl"></div>
+            </div>
         </div>
-    `;
-    lucide.createIcons();
+    `).join('');
 
     try {
         let query = db.from('model').select('*').order('model_id', { ascending: false });

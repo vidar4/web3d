@@ -29,20 +29,17 @@ loginForm.addEventListener('submit', async (e) => {
             .single();
 
         if (error || !data) {
-            alert(`❌ หาอีเมลไม่เจอ!\nสิ่งที่คุณพิมพ์: "${emailInput}"\nลองเช็คตัวสะกดดีๆ ครับ`);
+            alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
             btn.innerText = 'เข้าสู่ระบบ';
             return;
         }
 
-        // ขั้นตอนที่ 2: ถ้าเจออีเมลแล้ว มาเทียบรหัสผ่านกันให้เห็นจะจะ
+        // ขั้นตอนที่ 2: ถ้าเจออีเมลแล้ว มาเทียบรหัสผ่านกัน
         const dbPassword = data.user_password; // รหัสในฐานข้อมูล
-        
-        console.log("รหัสใน DB:", dbPassword);
-        console.log("รหัสที่พิมพ์:", passwordInput);
 
         if (dbPassword === passwordInput) {
             // --- ถ้าตรงกันเป๊ะ ---
-            alert(`✅ เย้! รหัสผ่านถูกต้องแล้ว\nกำลังพาไปหน้า ${data.role}`);
+            alert(`✅ เข้าสู่ระบบสำเร็จ!\nกำลังพาไปหน้า ${data.role}`);
             
             // บันทึกและย้ายหน้า
             localStorage.setItem('user_id', data.user_id);
@@ -53,13 +50,8 @@ loginForm.addEventListener('submit', async (e) => {
             else window.location.assign('index.html');
 
         } else {
-            // --- ถ้าไม่ตรง (จุดพีคอยู่ตรงนี้) ---
-            alert(
-                `⚠️ เจออีเมลแล้ว.. แต่รหัสผ่านไม่ตรง!\n\n` +
-                `🔐 ในฐานข้อมูลคือ: "${dbPassword}" (ยาว ${dbPassword.length} ตัว)\n` +
-                `⌨️ ที่คุณพิมพ์มาคือ: "${passwordInput}" (ยาว ${passwordInput.length} ตัว)\n\n` +
-                `สังเกตดูดีๆ ว่ามีช่องว่างเกินมาไหม หรือตัวพิมพ์เล็ก/ใหญ่ต่างกัน?`
-            );
+            // --- ถ้าไม่ตรง ---
+            alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
         }
 
     } catch (err) {

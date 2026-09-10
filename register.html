@@ -9,6 +9,22 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        primary: '#2563EB', 
+                        primaryHover: '#1D4ED8',
+                        secondary: '#0F172A',
+                        accent: '#06B6D4',
+                        bgLight: '#F8FAFC'
+                    },
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
 
     <style>
         /* =========================================
@@ -158,13 +174,20 @@
             .reg-header h1 { font-size: 1.6rem; }
         }
     </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="font-prompt">
 
-    <div class="lang-container">
-        <button onclick="toggleLanguage()" class="lang-btn group">
+    <div class="lang-container flex items-center gap-2">
+        <a href="index.html" class="p-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-full shadow-sm transition flex items-center justify-center" title="กลับหน้าแรก">
+            <i data-lucide="home" class="w-4 h-4"></i>
+        </a>
+        <button onclick="toggleLanguage()" class="lang-btn group" title="Change Language">
             <i data-lucide="globe" class="w-4 h-4"></i>
             <span id="lang-display">TH</span>
+        </button>
+        <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="p-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-full shadow-sm transition flex items-center justify-center">
+            <i data-lucide="menu" class="w-4 h-4"></i>
         </button>
     </div>
 
@@ -318,5 +341,6 @@
 
     <script src="register.js"></script>
     <script>lucide.createIcons();</script>
+    <script src="navbar.js"></script>
 </body>
 </html>

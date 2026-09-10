@@ -401,7 +401,7 @@ function renderOrderTable() {
                     </div>
                 </div>
 
-                <div style="background:#F8FAFC; border:1px solid #F1F5F9; border-radius:12px; padding:16px; margin-bottom:16px; display:flex; flex-direction:column; gap:10px; sm:flex-row sm:justify-between sm:items-center;">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2.5 p-4 mb-4 bg-slate-50 border border-slate-100 rounded-xl">
                     <div>
                         <div style="font-size:14px; color:#0F172A; font-weight:700; margin-bottom:4px;"><i data-lucide="user" style="width:14px; display:inline-block;"></i> ${custName} <span style="color:#64748B; font-weight:500;">(${custPhone})</span></div>
                         <div style="font-size:12px; color:#64748B;">${custAddrText}</div>
@@ -711,7 +711,15 @@ async function loadModelList() {
                 <div style="width: 60px; flex-shrink:0;"><img src="${img}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #eee;"></div>
                 <div style="flex: 2; min-width: 200px;">
                     <strong style="color:#0F172A; font-size:14px;">${m.model_name || 'ไม่มีชื่อ'}</strong>
-                    <div style="font-size:12px; color:#888;">หมวดหมู่: <span style="background:#F1F5F9; padding:2px 6px; border-radius:4px; color:#475569; font-weight:600;">${m.parent_id || 'ทั่วไป'}</span> | ID: #${m.model_id}</div>
+                    <div style="font-size:12px; color:#888;">หมวดหมู่: <span style="background:#EFF6FF; padding:2px 6px; border-radius:4px; color:#2563EB; font-weight:600;">${{
+    'characters': 'Characters (ฟิกเกอร์)',
+    'scifi': 'Sci-Fi (ไซไฟ)',
+    'architecture': 'Architecture (สถาปัตย์)',
+    'interior': 'Interior (ตกแต่งภายใน)',
+    'props': 'Props (อุปกรณ์)',
+    'nature': 'Nature (ธรรมชาติ)',
+    'art': 'Art (ศิลปะ)'
+}[m.parent_id] || m.parent_id || 'ทั่วไป'}</span> | ID: #${m.model_id}</div>
                 </div>
                 <div style="width: 80px; color:#2563EB; font-weight:800;">฿${m.model_price || 0}</div>
                 <div style="flex: 1.5; min-width:120px; font-size:12px; color:#64748B; font-weight:600;">${m.model_width || 0}x${m.model_length || 0}x${m.model_height || 0} cm</div>
