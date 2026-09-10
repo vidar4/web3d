@@ -57,28 +57,23 @@ window.switchTab = function(tabId, btn) {
 }
 
 // ==========================================
-// 4. ระบบ API ที่อยู่ไทย (เปลี่ยนเป็นแบบค้นหา)
+// 4. ระบบ API ที่อยู่ไทย (เปลี่ยนเป็นแบบค้นหาจากไฟล์ในตัวโปรเจกต์)
 // ==========================================
-async function loadThaiAddressAPI() {
-    try {
-        const res = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api/latest/province_with_district_and_sub_district.json');
-        const data = await res.json();
-        
-        data.forEach(prov => {
-            prov.districts.forEach(dist => {
-                dist.sub_districts.forEach(sub => {
-                    flatThaiData.push({
-                        subdistrict: sub[nameKey] || sub.name_th,
-                        district: dist[nameKey] || dist.name_th,
-                        province: prov[nameKey] || prov.name_th,
-                        zip: sub.zip_code
-                    });
-                });
-            });
-        });
-        
-        setupAddressAutocomplete();
-    } catch (e) { console.error("Address API Error", e); }
+function loadThaiAddressAPI() {
+    const activeLang = localStorage.getItem('my_site_lang') || 'th';
+    const isEn = activeLang === 'en';
+
+    if (window.THAI_ADDRESS_DATA && Array.isArray(window.THAI_ADDRESS_DATA)) {
+        flatThaiData = window.THAI_ADDRESS_DATA.map(item => ({
+            subdistrict: isEn && item[1] ? item[1] : item[0],
+            district: isEn && item[3] ? item[3] : item[2],
+            province: isEn && item[5] ? item[5] : item[4],
+            zip: item[6],
+            subdistrict_th: item[0],
+            subdistrict_en: item[1] || item[0]
+        }));
+    }
+    setupAddressAutocomplete();
 }
 
 function setupAddressAutocomplete() {
@@ -112,7 +107,13 @@ function setupAddressAutocomplete() {
             return;
         }
 
-        const matches = flatThaiData.filter(item => item.subdistrict.includes(val)).slice(0, 20);
+        const lowerVal = val.toLowerCase();
+        const matches = flatThaiData.filter(item => 
+            (item.subdistrict && item.subdistrict.toLowerCase().includes(lowerVal)) ||
+            (item.subdistrict_th && item.subdistrict_th.includes(val)) ||
+            (item.subdistrict_en && item.subdistrict_en.toLowerCase().includes(lowerVal)) ||
+            (item.district && item.district.toLowerCase().includes(lowerVal))
+        ).slice(0, 20);
 
         if (matches.length > 0) {
             matches.forEach(item => {

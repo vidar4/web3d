@@ -1,3 +1,21 @@
+
+function parseAddressesSafe(addrData) {
+    if (!addrData) return [];
+    if (Array.isArray(addrData)) return addrData;
+    if (typeof addrData === 'object') return [addrData];
+    if (typeof addrData === 'string') {
+        const trimmed = addrData.trim();
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (Array.isArray(parsed)) return parsed;
+                if (parsed && typeof parsed === 'object') return [parsed];
+            } catch(e) {}
+        }
+        return [{ id: Date.now(), addressNumber: 1, fullText: trimmed, isDefault: true }];
+    }
+    return [];
+}
 // ===========================================
 // 1. Config & Supabase Setup
 // ===========================================
@@ -167,7 +185,7 @@ async function fetchOrders(userId) {
                 
                 if (member.user_address) {
                     try {
-                        let addrArray = JSON.parse(member.user_address);
+                        let addrArray = parseAddressesSafe(member.user_address);
                         if (Array.isArray(addrArray) && addrArray.length > 0) {
                             let defAddr = addrArray.find(a => a.isDefault) || addrArray[0];
                             custName = defAddr.fullname || defAddr.fname + ' ' + defAddr.lname || custName;

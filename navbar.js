@@ -42,53 +42,53 @@
                 <nav id="drawer-nav-links" class="flex-1 overflow-y-auto p-4 space-y-1.5 hide-scrollbar">
                     <a href="index.html" class="drawer-nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-primary font-semibold transition text-sm">
                         <i data-lucide="home" class="w-5 h-5 text-slate-400"></i>
-                        <span>หน้าแรก (Home)</span>
+                        <span data-i18n="drawer_home">หน้าแรก (Home)</span>
                     </a>
                     <a href="index.html#store" class="drawer-nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-primary font-semibold transition text-sm">
                         <i data-lucide="layers" class="w-5 h-5 text-slate-400"></i>
-                        <span>คลังโมเดล 3D (Catalog)</span>
+                        <span data-i18n="drawer_catalog">คลังโมเดล 3D (Catalog)</span>
                     </a>
                     <a href="cart.html" class="drawer-nav-item flex items-center justify-between px-4 py-3 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-primary font-semibold transition text-sm">
                         <div class="flex items-center gap-3">
                             <i data-lucide="shopping-cart" class="w-5 h-5 text-slate-400"></i>
-                            <span>ตะกร้าสินค้า (Cart)</span>
+                            <span data-i18n="drawer_cart">ตะกร้าสินค้า (Cart)</span>
                         </div>
                         <span id="drawer-cart-badge" class="bg-primary text-white text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
                     </a>
                     <a href="to-pay.html" class="drawer-nav-item flex items-center justify-between px-4 py-3 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-primary font-semibold transition text-sm">
                         <div class="flex items-center gap-3">
                             <i data-lucide="credit-card" class="w-5 h-5 text-slate-400"></i>
-                            <span>ที่ต้องชำระ (To Pay)</span>
+                            <span data-i18n="drawer_to_pay">ที่ต้องชำระ (To Pay)</span>
                         </div>
                         <span id="drawer-to-pay-badge" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
                     </a>
                     <a href="status.html" class="drawer-nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-primary font-semibold transition text-sm">
                         <i data-lucide="truck" class="w-5 h-5 text-slate-400"></i>
-                        <span>ติดตามสถานะ (Orders)</span>
+                        <span data-i18n="drawer_status">ติดตามสถานะ (Orders)</span>
                     </a>
                     <a href="profile.html" class="drawer-nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-primary font-semibold transition text-sm">
                         <i data-lucide="user-check" class="w-5 h-5 text-slate-400"></i>
-                        <span>ข้อมูลส่วนตัว (Profile)</span>
+                        <span data-i18n="drawer_profile">ข้อมูลส่วนตัว (Profile)</span>
                     </a>
                     <div id="drawer-admin-link-wrapper" class="hidden pt-1">
                         <a href="admin.html" class="drawer-nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 font-bold transition text-sm border border-amber-200">
                             <i data-lucide="shield" class="w-5 h-5 text-amber-600"></i>
-                            <span>ระบบแอดมิน (Backoffice)</span>
+                            <span data-i18n="drawer_admin">ระบบแอดมิน (Backoffice)</span>
                         </a>
                     </div>
                 </nav>
 
                 <div class="p-4 border-t border-slate-100 space-y-3 bg-slate-50/60">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500">ภาษา (Language)</span>
-                        <button onclick="if(window.toggleLanguage){window.toggleLanguage();}else{const cur=localStorage.getItem('my_site_lang')||'th';localStorage.setItem('my_site_lang',cur==='th'?'en':'th');document.cookie='googtrans=/th/'+(cur==='th'?'en':'th')+'; path=/;';location.reload();}" class="lang-btn group" title="Change Language">
+                        <span class="text-xs font-semibold text-slate-500" data-i18n="drawer_lang">ภาษา (Language)</span>
+                        <button onclick="window.toggleLanguage()" class="lang-btn group" title="Change Language">
                             <i data-lucide="globe" class="w-4 h-4 text-slate-400 group-hover:text-primary"></i>
                             <span id="drawer-lang-display">TH</span>
                         </button>
                     </div>
                     <button id="drawer-logout-btn" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-red-600 bg-red-50 hover:bg-red-100 text-sm font-bold transition hidden">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
-                        <span>ออกจากระบบ</span>
+                        <span data-i18n="nav_logout">ออกจากระบบ</span>
                     </button>
                 </div>
             </aside>

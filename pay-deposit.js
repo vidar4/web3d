@@ -1,3 +1,21 @@
+
+function parseAddressesSafe(addrData) {
+    if (!addrData) return [];
+    if (Array.isArray(addrData)) return addrData;
+    if (typeof addrData === 'object') return [addrData];
+    if (typeof addrData === 'string') {
+        const trimmed = addrData.trim();
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (Array.isArray(parsed)) return parsed;
+                if (parsed && typeof parsed === 'object') return [parsed];
+            } catch(e) {}
+        }
+        return [{ id: Date.now(), addressNumber: 1, fullText: trimmed, isDefault: true }];
+    }
+    return [];
+}
 // ===========================================
 // 1. Config & Supabase Setup
 // ===========================================
@@ -267,7 +285,7 @@ function renderAddressBlock(group) {
     } 
     else if (group.member && group.member.user_address) {
         try {
-            let addrArray = JSON.parse(group.member.user_address);
+            let addrArray = parseAddressesSafe(group.member.user_address);
             if (Array.isArray(addrArray) && addrArray.length > 0) {
                 let defAddr = addrArray.find(a => a.isDefault) || addrArray[0];
                 let cName = defAddr.fullname || defAddr.fname + ' ' + defAddr.lname;
@@ -329,10 +347,7 @@ async function loadAddresses() {
         const { data, error } = await db.from('member').select('user_address').eq('user_id', userId).single();
         if (error) throw error;
         
-        let addresses = [];
-        if (data && data.user_address) {
-            try { addresses = JSON.parse(data.user_address); } catch(e) {}
-        }
+        let addresses = parseAddressesSafe(data ? data.user_address : null);
 
         if (addresses.length === 0) {
             container.innerHTML = '<p class="text-center py-8 text-slate-500">ไม่พบที่อยู่ที่บันทึกไว้</p>';

@@ -200,10 +200,10 @@ async function loadProducts(category = 'all', searchQuery = '') {
                     
                     <div class="flex items-center justify-between gap-4 pt-2 border-t border-slate-100">
                         <div class="flex flex-col">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ราคาเริ่มต้น</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">${window.t ? window.t('starting_price') : 'ราคาเริ่มต้น'}</span>
                             <span class="text-primary font-black text-xl leading-none">฿${Number(item.model_price).toLocaleString()}</span>
                         </div>
-                        <button class="w-10 h-10 bg-blue-50 hover:bg-primary rounded-xl flex items-center justify-center transition-all group-hover:shadow-lg group-hover:shadow-blue-500/20">
+                        <button class="w-10 h-10 bg-blue-50 hover:bg-primary rounded-xl flex items-center justify-center transition-all group-hover:shadow-lg group-hover:shadow-blue-500/20" title="${window.t ? window.t('view_details') : 'ดูรายละเอียด'}">
                             <i data-lucide="shopping-bag" class="text-primary group-hover:text-white transition" size="18"></i>
                         </button>
                     </div>
@@ -284,9 +284,17 @@ function checkUserLogin() {
         welcomeUserSpan.classList.remove('hidden');
         welcomeUserSpan.classList.add('sm:inline');
     } else {
-        welcomeUserSpan.textContent = "เข้าสู่ระบบ";
+        welcomeUserSpan.textContent = window.t ? window.t('nav_login') : "เข้าสู่ระบบ";
         welcomeUserSpan.parentElement.href = "login.html"; 
         welcomeUserSpan.classList.remove('hidden');
         welcomeUserSpan.classList.add('sm:inline');
     }
 }
+
+window.addEventListener('languageChanged', () => {
+    checkUserLogin();
+    if (typeof loadProducts === 'function') {
+        const searchVal = document.getElementById('searchInput')?.value || '';
+        loadProducts(currentCategory, searchVal);
+    }
+});

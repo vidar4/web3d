@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     showSection('overview');
+    if (typeof window.renderColorHuntPresets === 'function') window.renderColorHuntPresets();
 });
 
 window.showSection = function(sectionId) {
@@ -604,7 +605,7 @@ function setPreviewBox(boxId, pathData) {
     }
 }
 
-function createColorRowHTML(name = '', price = '', imgPath = null) {
+function createColorRowHTML(name = '', price = '', imgPath = null, hex = '#2563EB') {
     let imgHtml = `<img src="" class="color-img-preview absolute inset-0 w-full h-full object-cover hidden pointer-events-none">`;
     let hasImageClass = '';
     let cleanPath = '';
@@ -617,25 +618,72 @@ function createColorRowHTML(name = '', price = '', imgPath = null) {
         }
     }
 
+    const currentHex = hex || '#2563EB';
+
     return `
         <div class="flex flex-wrap sm:flex-nowrap items-stretch gap-2 w-full color-row-group">
-            <div class="flex flex-1 border border-slate-300 rounded-lg overflow-hidden bg-white w-full sm:max-w-[450px]">
-                <label class="color-upload-box ${hasImageClass} w-12 bg-slate-50 border-r border-slate-300 flex items-center justify-center relative shrink-0 overflow-hidden group hover:bg-slate-100 cursor-pointer">
+            <div class="flex flex-1 items-center border border-slate-300 rounded-lg overflow-hidden bg-white w-full sm:max-w-[500px]">
+                <div class="w-12 h-12 flex items-center justify-center p-1 bg-slate-50 border-r border-slate-300 shrink-0" title="เลือกโค้ดสี">
+                    <input type="color" class="color-hex-input w-8 h-8 rounded-lg cursor-pointer border-0 p-0 bg-transparent" value="${currentHex}">
+                </div>
+                <label class="color-upload-box ${hasImageClass} w-10 h-12 bg-slate-50 border-r border-slate-300 flex items-center justify-center relative shrink-0 overflow-hidden group hover:bg-slate-100 cursor-pointer" title="หรืออัปโหลดรูปตัวอย่างสี">
                     <input type="file" accept="image/*" class="color-img-input absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewColorImage(this)">
                     <input type="hidden" class="color-img-old" value="${cleanPath}">
-                    <i data-lucide="image" class="w-5 h-5 text-slate-400 group-hover:text-primary transition-colors"></i>
+                    <i data-lucide="image" class="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors"></i>
                     ${imgHtml}
                 </label>
-                <input type="text" class="color-name-input flex-1 p-3 border-none outline-none min-w-[80px]" placeholder="ชื่อสี (ขาวมุกอาร์กติก)" value="${name}">
-                <input type="number" class="color-price-input w-28 sm:w-32 p-3 border-none border-l border-slate-300 outline-none text-center shrink-0" placeholder="+ราคา (4)" value="${price}">
+                <input type="text" class="color-name-input flex-1 p-3 border-none outline-none min-w-[80px] text-sm" placeholder="ชื่อสี (เช่น ขาวมุกอาร์กติก)" value="${name}">
+                <div class="flex items-center border-l border-slate-300 bg-slate-50 px-2 shrink-0">
+                    <span class="text-xs text-slate-400 mr-1">+฿</span>
+                    <input type="number" class="color-price-input w-16 sm:w-20 p-2 bg-transparent border-none outline-none text-center text-sm font-semibold" placeholder="0" value="${price || 0}">
+                </div>
             </div>
             <div class="flex gap-2 shrink-0">
-                <button type="button" onclick="addColorField(this)" class="w-[50px] h-[50px] bg-white border border-slate-300 rounded-lg flex items-center justify-center text-primary hover:bg-blue-50 transition"><i data-lucide="plus"></i></button>
-                <button type="button" onclick="removeColorField(this)" class="w-[50px] h-[50px] bg-white border border-slate-300 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition"><i data-lucide="trash-2"></i></button>
+                <button type="button" onclick="addColorField(this)" class="w-[46px] h-[46px] bg-white border border-slate-300 rounded-lg flex items-center justify-center text-primary hover:bg-blue-50 transition"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                <button type="button" onclick="removeColorField(this)" class="w-[46px] h-[46px] bg-white border border-slate-300 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             </div>
         </div>
     `;
 }
+
+window.renderColorHuntPresets = function() {
+    if (!window.COLOR_HUNT_FILAMENTS) return;
+    const targets = [
+        { bar: document.getElementById('colorHuntPresetsBar'), containerId: 'color-container' },
+        { bar: document.getElementById('editColorHuntPresetsBar'), containerId: 'editColorContainer' }
+    ];
+    targets.forEach(({ bar, containerId }) => {
+        if (!bar) return;
+        bar.innerHTML = window.COLOR_HUNT_FILAMENTS.map(c => `
+            <button type="button" onclick="addColorPreset('${c.name_th}', '${c.hex}', ${c.price}, '${containerId}')" 
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition group cursor-pointer">
+                <span class="w-3.5 h-3.5 rounded-full border border-black/10 shadow-inner shrink-0" style="background-color: ${c.hex};"></span>
+                <span class="text-slate-700 group-hover:text-blue-600">${c.name_th}</span>
+                <span class="text-[10px] text-slate-400 font-normal">+฿${c.price}</span>
+            </button>
+        `).join('');
+    });
+};
+
+window.addColorPreset = function(name, hex, price, targetContainerId) {
+    const container = document.getElementById(targetContainerId);
+    if (!container) return;
+    const firstRow = container.querySelector('.color-row-group');
+    if (firstRow) {
+        const nameInput = firstRow.querySelector('.color-name-input');
+        if (nameInput && !nameInput.value.trim() && !firstRow.querySelector('.color-img-old')?.value) {
+            nameInput.value = name;
+            firstRow.querySelector('.color-price-input').value = price || 0;
+            const hexInput = firstRow.querySelector('.color-hex-input');
+            if (hexInput) hexInput.value = hex;
+            return;
+        }
+    }
+    const div = document.createElement('div');
+    div.innerHTML = createColorRowHTML(name, price, null, hex);
+    container.appendChild(div.firstElementChild);
+    if(typeof lucide !== 'undefined') lucide.createIcons();
+};
 
 window.addColorField = function(btnObj) {
     const container = btnObj ? btnObj.closest('div[id$="ColorContainer"]') || document.getElementById('color-container') : document.getElementById('color-container');
@@ -645,10 +693,10 @@ window.addColorField = function(btnObj) {
     if(typeof lucide !== 'undefined') lucide.createIcons();
 };
 
-window.addEditColorField = function(name, price, imgPath) {
+window.addEditColorField = function(name, price, imgPath, hex) {
     const container = document.getElementById('editColorContainer');
     const div = document.createElement('div');
-    div.innerHTML = createColorRowHTML(name, price, imgPath);
+    div.innerHTML = createColorRowHTML(name, price, imgPath, hex);
     container.appendChild(div.firstElementChild);
     if(typeof lucide !== 'undefined') lucide.createIcons();
 };
@@ -766,11 +814,15 @@ if(addForm) {
             for(let row of colorRows) {
                 const name = row.querySelector('.color-name-input').value.trim();
                 const price = Number(row.querySelector('.color-price-input').value || 0);
+                const hex = row.querySelector('.color-hex-input')?.value || null;
                 const fileInput = row.querySelector('.color-img-input');
                 let imgPath = null;
                 if(name) {
                     if(fileInput.files && fileInput.files.length > 0) imgPath = await uploadSingleImage(fileInput.files[0]);
-                    colors.push({ name, price, image: imgPath });
+                    const item = { name, price };
+                    if (hex) item.hex = hex;
+                    if (imgPath) item.image = imgPath;
+                    colors.push(item);
                 }
             }
 
@@ -826,7 +878,7 @@ window.openEditModal = async function(id) {
     let colors = [];
     try { colors = typeof m.model_color === 'string' ? JSON.parse(m.model_color) : m.model_color; } catch(e){}
     if (Array.isArray(colors) && colors.length > 0) {
-        colors.forEach(c => addEditColorField(c.name, c.price, c.image));
+        colors.forEach(c => addEditColorField(c.name, c.price, c.image, c.hex));
     } else {
         addEditColorField();
     }
@@ -870,6 +922,7 @@ document.getElementById('editModelFormDynamic')?.addEventListener('submit', asyn
         for(let row of colorRows) {
             const name = row.querySelector('.color-name-input').value.trim();
             const price = Number(row.querySelector('.color-price-input').value || 0);
+            const hex = row.querySelector('.color-hex-input')?.value || null;
             const fileInput = row.querySelector('.color-img-input');
             const oldImgInput = row.querySelector('.color-img-old');
             
@@ -877,7 +930,10 @@ document.getElementById('editModelFormDynamic')?.addEventListener('submit', asyn
 
             if(name) {
                 if(fileInput.files && fileInput.files.length > 0) imgPath = await uploadSingleImage(fileInput.files[0]);
-                colors.push({ name, price, image: imgPath });
+                const item = { name, price };
+                if (hex) item.hex = hex;
+                if (imgPath) item.image = imgPath;
+                colors.push(item);
             }
         }
 

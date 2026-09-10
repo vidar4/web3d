@@ -70,17 +70,17 @@
                 </div>
 
                 <div class="hidden md:flex items-center gap-8">
-                    <a href="index.html" class="text-primary font-semibold">หน้าแรก</a>
-                    <a href="#store" class="text-slate-500 hover:text-primary transition-colors">คลังโมเดล</a>
-                    <a href="status.html" class="text-slate-500 hover:text-primary transition-colors">ติดตามสถานะ</a>
+                    <a href="index.html" class="text-primary font-semibold" data-i18n="nav_home">หน้าแรก</a>
+                    <a href="#store" class="text-slate-500 hover:text-primary transition-colors" data-i18n="nav_store">คลังโมเดล</a>
+                    <a href="status.html" class="text-slate-500 hover:text-primary transition-colors" data-i18n="nav_status">ติดตามสถานะ</a>
                     <a href="to-pay.html" class="text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
-                        ที่ต้องชำระ
+                        <span data-i18n="nav_to_pay">ที่ต้องชำระ</span>
                         <span id="to-pay-badge-index" class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden font-bold">0</span>
                     </a>
                 </div>
 
                 <div class="flex items-center gap-4 sm:gap-6">
-                    <button onclick="toggleLanguage()" class="lang-btn group" title="Change Language">
+                    <button onclick="window.toggleLanguage()" class="lang-btn group" title="Change Language">
                         <i data-lucide="globe" class="w-4 h-4"></i>
                         <span id="lang-display">TH</span>
                     </button>
@@ -111,22 +111,22 @@
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                         </span>
-                        <span>มาใหม่: คอลเลกชันกระถางมินิมอล</span>
+                        <span data-i18n="hero_badge">มาใหม่: คอลเลกชัน MakerWorld 3D 2026</span>
                     </div>
 
                     <h1 class="text-5xl lg:text-7xl font-bold text-slate-900 leading-[1.1] tracking-tight mb-6">
-                        <span>เนรมิตโลก</span> <br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-500">ในแบบ 3 มิติ</span>
+                        <span data-i18n="hero_title_1">เนรมิตโลก</span> <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-500" data-i18n="hero_title_2">ในแบบ 3 มิติ</span>
                     </h1>
 
-                    <p class="text-lg text-slate-500 max-w-xl mb-10 leading-relaxed">
-                        ศูนย์รวมโมเดล 3D คุณภาพสูงที่ถูกคัดสรรมาสำหรับนักสร้างสรรค์ <br>
-                        ดาวน์โหลดหรือสั่งพิมพ์ด้วยวัสดุเกรดพรีเมียม ส่งตรงถึงมือคุณ
+                    <p class="text-lg text-slate-500 max-w-xl mb-10 leading-relaxed" data-i18n="hero_desc">
+                        ศูนย์รวมโมเดล 3D คุณภาพสูงจาก MakerWorld ที่คัดสรรมาเพื่อคุณ <br class="hidden sm:inline">
+                        ดาวน์โหลดหรือสั่งพิมพ์ด้วยวัสดุเกรดพรีเมียม ส่งตรงถึงบ้านคุณ
                     </p>
 
                     <div class="flex flex-col sm:flex-row items-center gap-4">
                         <a href="#store" class="w-full sm:w-auto bg-primary text-white px-8 py-4 rounded-xl font-bold hover:bg-primaryHover transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
-                            <span>เริ่มเลือกซื้อ</span> <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            <span data-i18n="btn_shop_now">เริ่มเลือกซื้อ</span> <i data-lucide="arrow-right" class="w-5 h-5"></i>
                         </a>
                     </div>
                 </div>
@@ -146,23 +146,23 @@
         <div class="flex flex-col md:flex-row gap-8 items-start">
             
             <div class="w-full md:w-64 shrink-0 sticky top-24">
-                <h3 class="text-xl font-bold text-slate-900 mb-6">หมวดหมู่โมเดล</h3>
+                <h3 class="text-xl font-bold text-slate-900 mb-6" data-i18n="category_title">หมวดหมู่โมเดล 3D</h3>
                 <ul class="flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0 hide-scrollbar" id="category-list">
-                    <li><button onclick="filterCategory('all', this)" class="category-tab active w-full text-left px-4 py-3 rounded-xl font-medium text-primary bg-blue-50 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="grid" class="w-4 h-4"></i> ทั้งหมด (All)</button></li>
-                    <li><button onclick="filterCategory('characters', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="user" class="w-4 h-4"></i> ฟิกเกอร์ & ตัวละคร (Characters)</button></li>
-                    <li><button onclick="filterCategory('scifi', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="rocket" class="w-4 h-4"></i> ไซไฟ & ยานพาหนะ (Sci-Fi)</button></li>
-                    <li><button onclick="filterCategory('architecture', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="landmark" class="w-4 h-4"></i> สถาปัตยกรรม (Architecture)</button></li>
-                    <li><button onclick="filterCategory('interior', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="armchair" class="w-4 h-4"></i> ตกแต่งภายใน & เฟอร์นิเจอร์ (Interior)</button></li>
-                    <li><button onclick="filterCategory('props', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="wrench" class="w-4 h-4"></i> อุปกรณ์ & แกดเจ็ต (Props)</button></li>
-                    <li><button onclick="filterCategory('nature', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="trees" class="w-4 h-4"></i> ธรรมชาติ & สัตว์ (Nature)</button></li>
-                    <li><button onclick="filterCategory('art', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="palette" class="w-4 h-4"></i> ศิลปะ & ประติมากรรม (Art)</button></li>
+                    <li><button onclick="filterCategory('all', this)" class="category-tab active w-full text-left px-4 py-3 rounded-xl font-medium text-primary bg-blue-50 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="grid" class="w-4 h-4"></i> <span data-i18n="cat_all">ทั้งหมด (All)</span></button></li>
+                    <li><button onclick="filterCategory('characters', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="user" class="w-4 h-4"></i> <span data-i18n="cat_characters">ฟิกเกอร์ & ตัวละคร</span></button></li>
+                    <li><button onclick="filterCategory('scifi', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="rocket" class="w-4 h-4"></i> <span data-i18n="cat_scifi">ไซไฟ & ยานพาหนะ</span></button></li>
+                    <li><button onclick="filterCategory('architecture', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="landmark" class="w-4 h-4"></i> <span data-i18n="cat_architecture">สถาปัตยกรรม</span></button></li>
+                    <li><button onclick="filterCategory('interior', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="armchair" class="w-4 h-4"></i> <span data-i18n="cat_interior">ของแต่งบ้าน & เฟอร์นิเจอร์</span></button></li>
+                    <li><button onclick="filterCategory('props', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="wrench" class="w-4 h-4"></i> <span data-i18n="cat_props">อุปกรณ์ & แกดเจ็ต</span></button></li>
+                    <li><button onclick="filterCategory('nature', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="trees" class="w-4 h-4"></i> <span data-i18n="cat_nature">ธรรมชาติ & สัตว์</span></button></li>
+                    <li><button onclick="filterCategory('art', this)" class="category-tab w-full text-left px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap flex items-center gap-2.5"><i data-lucide="palette" class="w-4 h-4"></i> <span data-i18n="cat_art">ศิลปะ & ประติมากรรม</span></button></li>
                 </ul>
             </div>
 
             <div class="flex-1 w-full">
                 <div class="relative w-full md:w-96 mb-8 ml-auto">
                     <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
-                    <input type="text" id="searchInput" placeholder="ค้นหาชื่อโมเดล..." class="w-full bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition shadow-sm text-slate-700">
+                    <input type="text" id="searchInput" placeholder="ค้นหาชื่อโมเดล..." data-i18n-placeholder="search_placeholder" class="w-full bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition shadow-sm text-slate-700">
                 </div>
 
                 <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -187,37 +187,7 @@
         </div>
     </footer>
 
-    <div id="google_translate_element" style="display:none;"></div>
-
-    <script type="text/javascript">
-        function setLangCookie(lang) {
-            document.cookie = "googtrans=/th/" + lang + "; path=/";
-            document.cookie = "googtrans=/th/" + lang + "; domain=" + window.location.hostname + "; path=/";
-            localStorage.setItem('my_site_lang', lang);
-        }
-
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'th', 
-                includedLanguages: 'th,en',
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-
-        function toggleLanguage() {
-            let currentLang = localStorage.getItem('my_site_lang') || 'th';
-            let targetLang = currentLang === 'th' ? 'en' : 'th';
-            setLangCookie(targetLang);
-            window.location.reload(); 
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            let savedLang = localStorage.getItem('my_site_lang') || 'th';
-            let langDisplay = document.getElementById('lang-display');
-            if (langDisplay) { langDisplay.innerText = savedLang.toUpperCase(); }
-        });
-    </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="i18n.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="main.js?v=2"></script>

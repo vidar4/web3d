@@ -298,26 +298,7 @@
         </div>
     </div>
 
-    <div id="google_translate_element" style="display:none;"></div>
-    <script type="text/javascript">
-        function setLangCookie(lang) {
-            document.cookie = "googtrans=/th/" + lang + "; path=/";
-            localStorage.setItem('my_site_lang', lang);
-        }
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'th', includedLanguages: 'th,en', autoDisplay: false}, 'google_translate_element');
-        }
-        function toggleLanguage() {
-            let currentLang = localStorage.getItem('my_site_lang') || 'th';
-            let targetLang = currentLang === 'th' ? 'en' : 'th';
-            setLangCookie(targetLang);
-            window.location.reload(); 
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            let savedLang = localStorage.getItem('my_site_lang') || 'th';
-            let langDisplay = document.getElementById('lang-display');
-            if (langDisplay) langDisplay.innerText = savedLang.toUpperCase();
-        });
+    <script src="i18n.js"></script>
 
         function toggleSizeMode(mode) {
             const standardBtn = document.getElementById('btn-mode-standard');
@@ -358,9 +339,9 @@
         
         window.currentSizeMode = 'standard';
     </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="colors_data.js"></script>
     <script src="detail.js?v=9"></script> 
     <script src="navbar.js"></script>
 </body>

@@ -52,29 +52,31 @@
         .skiptranslate iframe { display: none !important; }
     </style>
     <link rel="stylesheet" href="style.css">
+    <script src="colors_data.js"></script>
+    <script src="i18n.js"></script>
 </head>
 <body class="text-slate-800">
 
     <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-2 cursor-pointer shrink-0">
+                <div class="flex items-center gap-2 cursor-pointer shrink-0" onclick="window.location.href='index.html'">
                     <div class="bg-primary p-2 rounded-lg text-white shadow-sm"><i data-lucide="box" class="w-5 h-5"></i></div>
                     <span class="text-xl font-bold tracking-tight text-slate-900">3D TECH <span class="text-sm font-medium text-slate-500 ml-1 border-l-2 border-slate-200 pl-2">Admin</span></span>
                 </div>
                 
                 <div class="hidden lg:flex items-center gap-8 h-full">
-                    <a class="nav-link h-full flex items-center active" data-target="overview" onclick="showSection('overview')">ภาพรวมออเดอร์</a>
-                    <a class="nav-link h-full flex items-center" data-target="add-model" onclick="showSection('add-model')">เพิ่มโมเดล</a>
-                    <a class="nav-link h-full flex items-center" data-target="edit-model" onclick="showSection('edit-model')">จัดการและแก้ไขโมเดล</a>
-                    <a class="nav-link h-full flex items-center" data-target="view-reviews" onclick="showSection('view-reviews')">ดูรีวิวจากลูกค้า</a>
+                    <a class="nav-link h-full flex items-center active" data-target="overview" onclick="showSection('overview')" data-i18n="admin_orders">ภาพรวมออเดอร์</a>
+                    <a class="nav-link h-full flex items-center" data-target="add-model" onclick="showSection('add-model')" data-i18n="admin_add_model">เพิ่มโมเดล</a>
+                    <a class="nav-link h-full flex items-center" data-target="edit-model" onclick="showSection('edit-model')" data-i18n="admin_manage_models">จัดการและแก้ไขโมเดล</a>
+                    <a class="nav-link h-full flex items-center" data-target="view-reviews" onclick="showSection('view-reviews')" data-i18n="admin_reviews">ดูรีวิวจากลูกค้า</a>
                 </div>
 
                 <div class="flex items-center gap-3 sm:gap-6 shrink-0">
                     <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-xl transition flex items-center justify-center focus:outline-none">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
-                    <button onclick="toggleLanguage()" class="lang-btn group">
+                    <button onclick="window.toggleLanguage()" class="lang-btn group">
                         <i data-lucide="globe" class="w-4 h-4 text-slate-400 group-hover:text-primary"></i>
                         <span id="lang-display">TH</span>
                     </button>
@@ -82,7 +84,7 @@
                         <i data-lucide="user" class="w-4 h-4 text-primary"></i>
                         <span id="adminName" class="text-sm font-bold text-slate-700">แอดมิน</span>
                     </div>
-                    <button class="logout-btn border border-red-500 text-red-500 hover:bg-red-50 px-4 py-1.5 rounded-full font-bold text-sm transition">
+                    <button class="logout-btn border border-red-500 text-red-500 hover:bg-red-50 px-4 py-1.5 rounded-full font-bold text-sm transition" data-i18n="nav_logout">
                         ออกจากระบบ
                     </button>
                 </div>
@@ -90,10 +92,10 @@
         </div>
         
         <div class="lg:hidden flex overflow-x-auto px-4 py-3 bg-slate-50 border-t border-slate-200 gap-3 hide-scrollbar">
-            <button class="menu-item-mobile active px-4 py-2 rounded-full text-sm font-bold bg-primary text-white whitespace-nowrap transition shadow-md" data-target="overview" onclick="showSection('overview')">ภาพรวมออเดอร์</button>
-            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="add-model" onclick="showSection('add-model')">เพิ่มโมเดล</button>
-            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="edit-model" onclick="showSection('edit-model')">จัดการและแก้ไขโมเดล</button>
-            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="view-reviews" onclick="showSection('view-reviews')">ดูรีวิวจากลูกค้า</button>
+            <button class="menu-item-mobile active px-4 py-2 rounded-full text-sm font-bold bg-primary text-white whitespace-nowrap transition shadow-md" data-target="overview" onclick="showSection('overview')" data-i18n="admin_orders">ภาพรวมออเดอร์</button>
+            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="add-model" onclick="showSection('add-model')" data-i18n="admin_add_model">เพิ่มโมเดล</button>
+            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="edit-model" onclick="showSection('edit-model')" data-i18n="admin_manage_models">จัดการและแก้ไขโมเดล</button>
+            <button class="menu-item-mobile px-4 py-2 rounded-full text-sm font-bold bg-white border border-slate-200 text-slate-600 whitespace-nowrap transition" data-target="view-reviews" onclick="showSection('view-reviews')" data-i18n="admin_reviews">ดูรีวิวจากลูกค้า</button>
         </div>
     </nav>
 
@@ -133,15 +135,15 @@
 
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col p-5 md:p-8">
                 <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 border-b border-slate-100 pb-6">
-                    <h3 class="text-xl font-black text-slate-900 m-0">รายการคำสั่งซื้อล่าสุด (แบ่งตามบิล)</h3>
+                    <h3 class="text-xl font-black text-slate-900 m-0" data-i18n="admin_orders">รายการคำสั่งซื้อล่าสุด (แบ่งตามบิล)</h3>
                     <div class="filter-container flex gap-2 flex-wrap m-0" id="orderFilters">
-                        <button onclick="setOrderFilter('all', this)" class="filter-btn active">ทั้งหมด</button>
-                        <button onclick="setOrderFilter('รอการอนุมัติ', this)" class="filter-btn">รอการอนุมัติ</button>
-                        <button onclick="setOrderFilter('รอชำระเงิน', this)" class="filter-btn">รอชำระเงิน</button>
-                        <button onclick="setOrderFilter('รอตรวจสอบ', this)" class="filter-btn">รอตรวจสลิป</button>
-                        <button onclick="setOrderFilter('กำลังผลิต', this)" class="filter-btn">กำลังผลิต</button>
-                        <button onclick="setOrderFilter('เสร็จสิ้น', this)" class="filter-btn">เสร็จสิ้นแล้ว</button>
-                        <button onclick="setOrderFilter('ยกเลิกคำสั่งซื้อ', this)" class="filter-btn">ยกเลิกแล้ว</button>
+                        <button onclick="setOrderFilter('all', this)" class="filter-btn active" data-i18n="filter_all">ทั้งหมด</button>
+                        <button onclick="setOrderFilter('รอการอนุมัติ', this)" class="filter-btn" data-i18n="filter_pending">รอการอนุมัติ</button>
+                        <button onclick="setOrderFilter('รอชำระเงิน', this)" class="filter-btn" data-i18n="filter_wait_pay">รอชำระเงิน</button>
+                        <button onclick="setOrderFilter('รอตรวจสอบ', this)" class="filter-btn" data-i18n="filter_wait_slip">รอตรวจสลิป</button>
+                        <button onclick="setOrderFilter('กำลังผลิต', this)" class="filter-btn" data-i18n="filter_producing">กำลังผลิต</button>
+                        <button onclick="setOrderFilter('เสร็จสิ้น', this)" class="filter-btn" data-i18n="filter_done">เสร็จสิ้นแล้ว</button>
+                        <button onclick="setOrderFilter('ยกเลิกคำสั่งซื้อ', this)" class="filter-btn" data-i18n="filter_cancelled">ยกเลิกแล้ว</button>
                     </div>
                 </div>
 
@@ -154,7 +156,7 @@
         </section>
 
         <section id="add-model" class="content-section" style="display: none;">
-            <h2 class="text-2xl font-black text-slate-900 mb-6">เพิ่มโมเดล</h2>
+            <h2 class="text-2xl font-black text-slate-900 mb-6" data-i18n="admin_add_model">เพิ่มโมเดล</h2>
             <form id="addModelForm" class="flex flex-col lg:flex-row gap-8 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
                 
                 <div class="w-full lg:w-80 shrink-0">
@@ -177,12 +179,12 @@
 
                 <div class="flex-1 space-y-5 w-full min-w-0">
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
-                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ชื่อโมเดล</label>
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0" data-i18n="admin_model_name">ชื่อโมเดล</label>
                         <input type="text" id="modelName" class="flex-1 border border-slate-300 rounded-lg p-3 outline-none focus:border-primary" placeholder="Europalette Miniatur / 1:20 Pallet" required>
                     </div>
                     
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
-                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ประเภท</label>
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0" data-i18n="admin_model_cat">ประเภท</label>
                         <select id="modelCategory" class="flex-1 border border-slate-300 rounded-lg p-3 outline-none focus:border-primary bg-white" required>
                             <option value="" disabled selected>-- คลิกเพื่อเลือกหมวดหมู่ --</option>
                             <option value="characters">Characters & Figures (ฟิกเกอร์ & ตัวละคร)</option>
@@ -197,7 +199,7 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
-                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ราคาสินค้า</label>
+                        <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0" data-i18n="admin_model_price">ราคาสินค้า</label>
                         <div class="flex items-stretch border border-slate-300 rounded-lg overflow-hidden w-full sm:max-w-[200px]">
                             <span class="bg-slate-50 px-4 py-3 border-r border-slate-300 font-bold text-slate-500">฿</span>
                             <input type="number" id="modelPrice" class="flex-1 p-3 outline-none w-full" placeholder="290" required>
@@ -207,20 +209,37 @@
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-6">
                         <label class="w-full sm:w-32 font-bold text-slate-900 pt-2 shrink-0">ตัวเลือกสี</label>
                         <div class="flex-1 flex flex-col gap-3 min-w-0">
+                            <!-- Color Hunt 1-Click Quick Preset Bar -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                        <i data-lucide="palette" class="w-3.5 h-3.5 text-primary"></i>
+                                        จานสี Color Hunt (คลิกเพื่อเพิ่มทันที):
+                                    </span>
+                                    <span class="text-[11px] text-slate-400">21 เฉดสียอดนิยม</span>
+                                </div>
+                                <div id="colorHuntPresetsBar" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1"></div>
+                            </div>
                             <div id="color-container" class="space-y-3">
                                 <div class="flex flex-wrap sm:flex-nowrap items-stretch gap-2 w-full color-row-group">
-                                    <div class="flex flex-1 border border-slate-300 rounded-lg overflow-hidden bg-white w-full sm:max-w-[450px]">
-                                        <label class="color-upload-box w-12 bg-slate-50 border-r border-slate-300 flex items-center justify-center relative shrink-0 overflow-hidden group hover:bg-slate-100 cursor-pointer">
+                                    <div class="flex flex-1 items-center border border-slate-300 rounded-lg overflow-hidden bg-white w-full sm:max-w-[500px]">
+                                        <div class="w-12 h-12 flex items-center justify-center p-1 bg-slate-50 border-r border-slate-300 shrink-0" title="เลือกโค้ดสี">
+                                            <input type="color" class="color-hex-input w-8 h-8 rounded-lg cursor-pointer border-0 p-0 bg-transparent" value="#F8FAFC">
+                                        </div>
+                                        <label class="color-upload-box w-10 h-12 bg-slate-50 border-r border-slate-300 flex items-center justify-center relative shrink-0 overflow-hidden group hover:bg-slate-100 cursor-pointer" title="หรืออัปโหลดรูปตัวอย่างสี">
                                             <input type="file" accept="image/*" class="color-img-input absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewColorImage(this)">
-                                            <i data-lucide="image" class="icon-placeholder w-5 h-5 text-slate-400 group-hover:text-primary transition-colors"></i>
+                                            <i data-lucide="image" class="icon-placeholder w-4 h-4 text-slate-400 group-hover:text-primary transition-colors"></i>
                                             <img src="" class="color-img-preview absolute inset-0 w-full h-full object-cover hidden pointer-events-none">
                                         </label>
-                                        <input type="text" class="color-name-input flex-1 p-3 border-none outline-none min-w-[80px]" placeholder="ชื่อสี (ขาวมุกอาร์กติก)">
-                                        <input type="number" class="color-price-input w-28 sm:w-32 p-3 border-none border-l border-slate-300 outline-none text-center shrink-0" placeholder="+ราคา (4)">
+                                        <input type="text" class="color-name-input flex-1 p-3 border-none outline-none min-w-[80px] text-sm" placeholder="ชื่อสี (เช่น ขาวมุกอาร์กติก)">
+                                        <div class="flex items-center border-l border-slate-300 bg-slate-50 px-2 shrink-0">
+                                            <span class="text-xs text-slate-400 mr-1">+฿</span>
+                                            <input type="number" class="color-price-input w-16 sm:w-20 p-2 bg-transparent border-none outline-none text-center text-sm font-semibold" placeholder="0" value="0">
+                                        </div>
                                     </div>
                                     <div class="flex gap-2 shrink-0">
-                                        <button type="button" onclick="addColorField()" class="w-[50px] h-[50px] bg-white border border-slate-300 rounded-lg flex items-center justify-center text-primary hover:bg-blue-50 transition"><i data-lucide="plus"></i></button>
-                                        <button type="button" class="w-[50px] h-[50px] bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-300 cursor-not-allowed"><i data-lucide="trash-2"></i></button>
+                                        <button type="button" onclick="addColorField(this)" class="w-[46px] h-[46px] bg-white border border-slate-300 rounded-lg flex items-center justify-center text-primary hover:bg-blue-50 transition"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                        <button type="button" class="w-[46px] h-[46px] bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-300 cursor-not-allowed"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -368,6 +387,16 @@
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
                         <label class="w-full sm:w-28 font-bold text-slate-900 pt-2 shrink-0">ตัวเลือกสี</label>
                         <div class="flex-1 flex flex-col gap-3 min-w-0">
+                            <!-- Color Hunt Preset Bar in Edit Modal -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                        <i data-lucide="palette" class="w-3.5 h-3.5 text-primary"></i>
+                                        จานสี Color Hunt (คลิกเพื่อเพิ่มทันที):
+                                    </span>
+                                </div>
+                                <div id="editColorHuntPresetsBar" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1"></div>
+                            </div>
                             <div id="editColorContainer" class="space-y-3"></div>
                             <button type="button" onclick="addEditColorField()" class="text-primary font-bold text-sm w-max hover:underline flex items-center gap-1"><i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มตัวเลือกสี</button>
                         </div>
@@ -397,20 +426,7 @@
         </div>
     </div>
 
-    <div id="google_translate_element" style="display:none;"></div>
-    <script type="text/javascript">
-        function setLangCookie(lang) { document.cookie = "googtrans=/th/" + lang + "; path=/"; localStorage.setItem('my_site_lang', lang); }
-        function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'th', includedLanguages: 'th,en', autoDisplay: false}, 'google_translate_element'); }
-        function toggleLanguage() { setLangCookie(localStorage.getItem('my_site_lang') === 'th' ? 'en' : 'th'); window.location.reload(); }
-        document.addEventListener('DOMContentLoaded', () => {
-            let savedLang = localStorage.getItem('my_site_lang') || 'th';
-            let langDisplay = document.getElementById('lang-display');
-            if (langDisplay) langDisplay.innerText = savedLang.toUpperCase();
-        });
-    </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-    <script src="admin.js?v=34"></script>
+    <script src="admin.js?v=35"></script>
     <script src="navbar.js"></script>
 </body>
 </html>

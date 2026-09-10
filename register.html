@@ -182,7 +182,7 @@
         <a href="index.html" class="p-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-full shadow-sm transition flex items-center justify-center" title="กลับหน้าแรก">
             <i data-lucide="home" class="w-4 h-4"></i>
         </a>
-        <button onclick="toggleLanguage()" class="lang-btn group" title="Change Language">
+        <button onclick="window.toggleLanguage()" class="lang-btn group" title="Change Language">
             <i data-lucide="globe" class="w-4 h-4"></i>
             <span id="lang-display">TH</span>
         </button>
@@ -196,21 +196,21 @@
             
             <div class="reg-header">
                 <div class="reg-icon-box"><i data-lucide="user-plus" style="width: 32px; height: 32px;"></i></div>
-                <h1>สร้างบัญชีใหม่</h1>
-                <p>กรอกข้อมูลให้ครบถ้วนเพื่อความรวดเร็วในการจัดส่ง</p>
+                <h1 data-i18n="reg_title">สร้างบัญชีใหม่</h1>
+                <p data-i18n="reg_subtitle">กรอกข้อมูลให้ครบถ้วนเพื่อความรวดเร็วในการจัดส่ง</p>
             </div>
 
             <form id="registerForm">
                 
-                <div class="reg-section-title">ข้อมูลบัญชี (Account)</div>
+                <div class="reg-section-title" data-i18n="reg_section_acc">ข้อมูลบัญชี (Account)</div>
                 <div class="reg-grid">
                     <div class="reg-group full-width">
-                        <label>อีเมล <span style="color:red;">*</span></label>
-                        <input type="email" id="reg-email" class="reg-input" placeholder="email@example.com" required>
+                        <label><span data-i18n="label_email">อีเมล</span> <span style="color:red;">*</span></label>
+                        <input type="email" id="reg-email" class="reg-input" placeholder="email@example.com" data-i18n-placeholder="ph_email" required>
                     </div>
                     
                     <div class="reg-group">
-                        <label>รหัสผ่าน <span style="color:red;">*</span></label>
+                        <label><span data-i18n="label_password">รหัสผ่าน</span> <span style="color:red;">*</span></label>
                         <input type="password" id="reg-password" class="reg-input pr-10" placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" required>
                         <button type="button" class="toggle-password" onclick="togglePasswordVisibility('reg-password', 'eye-icon-pass')">
                             <i data-lucide="eye-off" id="eye-icon-pass" class="w-5 h-5"></i>
@@ -218,15 +218,15 @@
                     </div>
                     
                     <div class="reg-group">
-                        <label>ยืนยันรหัสผ่าน <span style="color:red;">*</span></label>
-                        <input type="password" id="reg-confirm-password" class="reg-input pr-10" placeholder="กรอกรหัสผ่านอีกครั้ง" minlength="6" required>
+                        <label><span data-i18n="label_confirm_pass">ยืนยันรหัสผ่าน</span> <span style="color:red;">*</span></label>
+                        <input type="password" id="reg-confirm-password" class="reg-input pr-10" placeholder="กรอกรหัสผ่านอีกครั้ง" data-i18n-placeholder="ph_confirm_pass" minlength="6" required>
                         <button type="button" class="toggle-password" onclick="togglePasswordVisibility('reg-confirm-password', 'eye-icon-confirm')">
                             <i data-lucide="eye-off" id="eye-icon-confirm" class="w-5 h-5"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="reg-section-title">ข้อมูลการจัดส่ง (Shipping Address)</div>
+                <div class="reg-section-title" data-i18n="reg_section_ship">ข้อมูลการจัดส่ง (Shipping Address)</div>
                 <div class="reg-grid">
                     
                     <div class="reg-group">
@@ -289,39 +289,11 @@
         </div>
     </div>
 
-    <div id="google_translate_element" style="display:none;"></div>
-
-    <script type="text/javascript">
-        function setLangCookie(lang) {
-            document.cookie = "googtrans=/th/" + lang + "; path=/";
-            document.cookie = "googtrans=/th/" + lang + "; domain=" + window.location.hostname + "; path=/";
-            localStorage.setItem('my_site_lang', lang);
-        }
-
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'th', 
-                includedLanguages: 'th,en',
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-
-        function toggleLanguage() {
-            let currentLang = localStorage.getItem('my_site_lang') || 'th';
-            let targetLang = currentLang === 'th' ? 'en' : 'th';
-            setLangCookie(targetLang);
-            window.location.reload(); 
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            let savedLang = localStorage.getItem('my_site_lang') || 'th';
-            let langDisplay = document.getElementById('lang-display');
-            if (langDisplay) {
-                langDisplay.innerText = savedLang.toUpperCase();
-            }
-        });
-
-        // 💡 แก้บัค: เปิดตา = เห็นรหัส (eye), ปิดตา = ซ่อนรหัส (eye-off)
+    <script src="i18n.js"></script>
+    <script src="thai_address_data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="register.js"></script>
+    <script>
         function togglePasswordVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
@@ -333,14 +305,10 @@
                 input.type = "password";
                 icon.setAttribute("data-lucide", "eye-off"); 
             }
-            
             lucide.createIcons();
         }
+        lucide.createIcons();
     </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-    <script src="register.js"></script>
-    <script>lucide.createIcons();</script>
     <script src="navbar.js"></script>
 </body>
 </html>

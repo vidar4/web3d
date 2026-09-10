@@ -264,14 +264,28 @@ function renderOptions(containerId, data, type) {
 
             let innerHTML = '';
             if (type === 'color') {
-                if (item.image && item.image !== 'null' && item.image !== '' && item.image !== '[]') {
+                let hexCode = item.hex;
+                if (!hexCode && typeof item.name === 'string') {
+                    const hexMatch = item.name.match(/#[0-9a-fA-F]{6}/);
+                    if (hexMatch) hexCode = hexMatch[0];
+                }
+                if (!hexCode && window.COLOR_HUNT_FILAMENTS) {
+                    const found = window.COLOR_HUNT_FILAMENTS.find(c => c.name_th === item.name || c.name_en === item.name || (item.name && item.name.includes(c.name_th)));
+                    if (found) hexCode = found.hex;
+                }
+
+                if (hexCode) {
+                    innerHTML += `<div class="w-6 h-6 rounded-full border border-slate-300 shadow-sm shrink-0 ring-1 ring-slate-900/10" style="background-color: ${hexCode};"></div>`;
+                } else if (item.image && item.image !== 'null' && item.image !== '' && item.image !== '[]') {
                     innerHTML += `<img src="${getModelImageUrl(item.image)}" class="w-6 h-6 rounded-full object-cover border border-slate-300 shadow-sm shrink-0">`;
                 } else {
                     innerHTML += `<div class="w-6 h-6 rounded-full bg-slate-200 border border-slate-300 shadow-sm shrink-0 flex items-center justify-center text-[8px] text-slate-400">สี</div>`;
                 }
             }
             
-            innerHTML += `<span class="truncate">${item.name}${item.price > 0 ? ' <span class="text-[11px] font-normal opacity-80">(+฿'+item.price+')</span>' : ''}</span>`;
+            const isEn = typeof window.getCurrentLanguage === 'function' && window.getCurrentLanguage() === 'en';
+            const displayName = (isEn && item.name_en) ? item.name_en : (item.name || item.name_th || '');
+            innerHTML += `<span class="truncate">${displayName}${item.price > 0 ? ' <span class="text-[11px] font-normal opacity-80">(+฿'+item.price+')</span>' : ''}</span>`;
             btn.innerHTML = innerHTML;
 
             if (isActive) {
@@ -675,3 +689,11 @@ window.closeMaterialModal = function() {
         document.body.classList.remove('modal-active');
     }, 300);
 };
+
+window.addEventListener('languageChanged', () => {
+    if (typeof currentModel !== 'undefined' && currentModel) {
+        renderOptions('color-options-container', currentModel.model_color, 'color');
+        renderOptions('material-options-container', currentModel.model_material, 'material');
+        updateTotalPrice();
+    }
+});

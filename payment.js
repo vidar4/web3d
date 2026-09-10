@@ -92,6 +92,30 @@ function loadCart() {
 
 // ==========================================
 // 3. โหลดข้อมูลที่อยู่จัดส่ง
+function parseAddressesSafe(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'object') return [raw];
+    if (typeof raw === 'string') {
+        const trimmed = raw.trim();
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                return Array.isArray(parsed) ? parsed : [parsed];
+            } catch(e) {}
+        }
+        return [{
+            id: 'legacy_1',
+            title: 'ที่อยู่ปัจจุบัน',
+            fullname: localStorage.getItem('user_name') || 'ผู้สั่งซื้อ',
+            phone: localStorage.getItem('user_phone') || '',
+            fullText: trimmed,
+            isDefault: true
+        }];
+    }
+    return [];
+}
+
 // ==========================================
 async function fetchAddresses() {
     const displayContainer = document.getElementById('address-display');
@@ -101,7 +125,7 @@ async function fetchAddresses() {
         if (error) throw error;
 
         if (data && data.user_address) {
-            userAddresses = JSON.parse(data.user_address);
+            userAddresses = parseAddressesSafe(data.user_address);
             
             if (userAddresses.length > 0) {
                 // เลือกที่อยู่ Default เป็นอันดับแรก ถ้าไม่มีก็เอาอันแรกสุด

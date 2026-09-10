@@ -54,38 +54,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         provSelect.outerHTML = `<input type="text" id="reg-province" class="reg-input notranslate bg-slate-50" placeholder="ระบบจะกรอกให้อัตโนมัติ" readonly required>`;
     }
 
-    // 💡 2. ดึงข้อมูล API และแผ่ข้อมูล (Flatten) สำหรับระบบค้นหา
-    try {
-        const apiUrl = 'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api/latest/province_with_district_and_sub_district.json';
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error("API Connection Failed");
+    // 💡 2. ใช้งานข้อมูลที่อยู่ประเทศไทยจากไฟล์ในเครื่อง (Instant & Offline)
+    function initAddressData() {
+        const activeLang = localStorage.getItem('my_site_lang') || 'th';
+        const isEn = activeLang === 'en';
 
-        const data = await response.json();
+        if (window.THAI_ADDRESS_DATA && Array.isArray(window.THAI_ADDRESS_DATA)) {
+            flatThaiData = window.THAI_ADDRESS_DATA.map(item => ({
+                subdistrict: isEn && item[1] ? item[1] : item[0],
+                district: isEn && item[3] ? item[3] : item[2],
+                province: isEn && item[5] ? item[5] : item[4],
+                zip: item[6],
+                subdistrict_th: item[0],
+                subdistrict_en: item[1] || item[0]
+            }));
+        }
         
-        data.forEach(prov => {
-            prov.districts.forEach(dist => {
-                dist.sub_districts.forEach(sub => {
-                    flatThaiData.push({
-                        subdistrict: sub[nameKey] || sub.name_th,
-                        district: dist[nameKey] || dist.name_th,
-                        province: prov[nameKey] || prov.name_th,
-                        zip: sub.zip_code
-                    });
-                });
-            });
-        });
-
-        // เปลี่ยน Placeholder เมื่อโหลดเสร็จ
         const subInput = document.getElementById('reg-subdistrict');
-        if(subInput) subInput.placeholder = uiTexts.placeholder;
-
+        if (subInput) subInput.placeholder = isEn ? "Type sub-district name..." : "พิมพ์ชื่อตำบลเพื่อค้นหา...";
         setupAutocomplete();
-
-    } catch (error) {
-        console.error("Fetch Error:", error);
-        const subInput = document.getElementById('reg-subdistrict');
-        if(subInput) subInput.placeholder = uiTexts.error;
     }
+
+    initAddressData();
+    window.addEventListener('languageChanged', initAddressData);
 });
 
 // 💡 3. ฟังก์ชันจัดการค้นหาเมื่อพิมพ์
@@ -108,8 +99,14 @@ function setupAutocomplete() {
             return;
         }
 
-        // ค้นหาจากชื่อตำบล (จำกัด 20 รายการ)
-        const matches = flatThaiData.filter(item => item.subdistrict.includes(val)).slice(0, 20);
+        // ค้นหาจากชื่อตำบล (จำกัด 20 รายการ) รองรับทั้งไทยและอังกฤษ
+        const lowerVal = val.toLowerCase();
+        const matches = flatThaiData.filter(item => 
+            (item.subdistrict && item.subdistrict.toLowerCase().includes(lowerVal)) ||
+            (item.subdistrict_th && item.subdistrict_th.includes(val)) ||
+            (item.subdistrict_en && item.subdistrict_en.toLowerCase().includes(lowerVal)) ||
+            (item.district && item.district.toLowerCase().includes(lowerVal))
+        ).slice(0, 20);
 
         if (matches.length > 0) {
             matches.forEach(item => {

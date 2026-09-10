@@ -100,7 +100,7 @@
                 <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="md:hidden p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-xl transition flex items-center justify-center focus:outline-none">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
-                <button onclick="toggleLanguage()" class="lang-btn group">
+                <button onclick="window.toggleLanguage()" class="lang-btn group">
                     <i data-lucide="globe" class="w-4 h-4"></i>
                     <span id="lang-display">TH</span>
                 </button>
@@ -283,29 +283,11 @@
         </main>
     </div>
 
-    <div id="google_translate_element" style="display:none;"></div>
     
-    <script type="text/javascript">
-        function setLangCookie(lang) {
-            document.cookie = "googtrans=/th/" + lang + "; path=/";
-            document.cookie = "googtrans=/th/" + lang + "; domain=" + window.location.hostname + "; path=/";
-            localStorage.setItem('my_site_lang', lang);
-        }
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'th', includedLanguages: 'th,en', autoDisplay: false}, 'google_translate_element');
-        }
-        function toggleLanguage() {
-            let currentLang = localStorage.getItem('my_site_lang') || 'th';
-            let targetLang = currentLang === 'th' ? 'en' : 'th';
-            setLangCookie(targetLang);
-            window.location.reload(); 
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            let savedLang = localStorage.getItem('my_site_lang') || 'th';
-            let langDisplay = document.getElementById('lang-display');
-            if (langDisplay) langDisplay.innerText = savedLang.toUpperCase();
-        });
 
+    <script src="i18n.js"></script>
+    <script src="thai_address_data.js"></script>
+    <script>
         // 💡 ฟังก์ชันสลับแสดงรหัสผ่าน/ซ่อนรหัสผ่าน
         function togglePasswordVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);
@@ -324,7 +306,6 @@
             }
         }
     </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <script src="profile.js?v=16"></script>
     <script>lucide.createIcons();</script>
