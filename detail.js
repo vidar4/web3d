@@ -107,6 +107,11 @@ function renderUI(model) {
     document.getElementById('detail-name').innerText = model.model_name || 'ชื่อโมเดล';
     document.getElementById('detail-category').innerText = categoryMap[model.parent_id] || model.parent_id || 'หมวดหมู่ทั่วไป';
     
+    const taglineElem = document.getElementById('detail-tagline');
+    if (taglineElem && typeof window.getModelTagline === 'function') {
+        taglineElem.innerText = window.getModelTagline(model);
+    }
+    
     const imgCols = ['model_image_1', 'model_image_2', 'model_image_3', 'model_image_4'];
     let validImages = [];
     model3dUrl = null;
@@ -517,6 +522,10 @@ function addToCart() {
     cart.push(item);
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartBadge();
+    
+    if (typeof window.showToast === 'function') {
+        window.showToast('เพิ่มสินค้าลงในตะกร้าเรียบร้อยแล้ว! 🛒', 'success');
+    }
     
     const btn = document.getElementById('add-to-cart-btn');
     const originalText = btn.innerHTML;

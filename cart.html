@@ -5,13 +5,173 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ตะกร้าสินค้า - 3D Tech</title>
     
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#2563EB', primaryHover: '#1D4ED8', bgLight: '#F8FAFC' },
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        body { background-color: #F8FAFC; top: 0px !important; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .nav-link { color: #64748B; font-weight: 600; transition: all 0.2s; position: relative; }
+        .nav-link:hover, .nav-link.active { color: #2563EB; }
+        .nav-link.active::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 100%; height: 2px; background: #2563EB; border-radius: 2px; }
+
+        .lang-btn {
+            display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+            border-radius: 50px; background: #ffffff; border: 1px solid #e2e8f0;
+            color: #475569; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .lang-btn:hover { background: #eff6ff; border-color: #3b82f6; color: #2563eb; transform: translateY(-2px); }
+        
+        
+        
+        
+    </style>
+    <script src="i18n.js"></script>
+</head>
+<body class="text-slate-800 font-prompt antialiased pb-20">
+
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition-all active:scale-95">
+                    <div class="bg-primary p-2 rounded-xl text-white shadow-lg shadow-blue-500/20">
+                        <i data-lucide="box" class="w-5 h-5"></i>
+                    </div>
+                    <h1 class="text-xl font-black tracking-tight text-slate-900">3D TECH</h1>
+                </a>
+
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="index.html" class="nav-link">หน้าแรก</a>
+                    <a href="index.html#store" class="nav-link">คลังโมเดล</a>
+                    <a href="status.html" class="nav-link">ติดตามสถานะ</a>
+                    <a href="to-pay.html" class="nav-link flex items-center gap-1">
+                        ที่ต้องชำระ
+                        <span id="to-pay-badge-index" class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden font-bold">0</span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center gap-3 md:gap-4">
+                    <button onclick="window.toggleLanguage()" class="lang-btn group" title="Change Language">
+                        <i data-lucide="globe" class="w-4 h-4 text-slate-400 group-hover:text-primary"></i>
+                        <span id="lang-display">TH</span>
+                    </button>
+
+                    <a href="cart.html" class="p-2 text-primary bg-blue-50 rounded-full transition-colors relative">
+                        <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                        <span id="cartBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold border border-white hidden shadow-sm">0</span>
+                    </a>
+                    
+                    <div class="flex items-center gap-2 bg-slate-50 p-1 pr-4 rounded-full border border-slate-200">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white shadow-sm">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <span id="welcome-user" class="text-xs md:text-sm font-bold truncate max-w-[80px] md:max-w-[120px]">User</span>
+                    </div>
+                    <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="md:hidden p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-xl transition flex items-center justify-center focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 md:py-12">
+        
+        <div class="mb-8">
+            <a href="index.html#store" class="inline-flex items-center gap-2 text-slate-500 hover:text-primary font-semibold text-sm transition-all hover:-translate-x-1 group">
+                <i data-lucide="chevron-left" class="w-4 h-4 transition-transform group-hover:scale-125"></i> กลับไปเลือกสินค้าต่อ
+            </a>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mt-4">
+                ตะกร้าสินค้าของคุณ
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-8 space-y-4" id="cart-items-container">
+                <div class="py-24 text-center bg-white rounded-3xl border border-slate-200 shadow-sm transition-all">
+                    <div class="relative inline-flex mb-4">
+                        <div class="w-12 h-12 border-4 border-blue-100 border-t-primary rounded-full animate-spin"></div>
+                    </div>
+                    <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดรายการสินค้า...</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 h-fit sticky top-24" id="summary-section">
+                <div class="bg-white p-6 md:p-8 rounded-[24px] border border-slate-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)]">
+                    <h2 class="text-xl font-black text-slate-900 mb-6">สรุปรายการที่เลือก</h2>
+                    
+                    <div class="space-y-4 text-slate-600 mb-6 border-b border-slate-100 pb-6">
+                        <div class="flex justify-between items-center">
+                            <span>จำนวนสินค้า (<span id="summary-count">0</span>)</span>
+                            <span class="font-bold text-slate-700 text-sm">ตรวจสอบแล้ว</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-end mb-6">
+                        <span class="text-slate-500 font-bold">ยอดรวมทั้งหมด</span>
+                        <div class="text-right">
+                            <h3 id="grand-total" class="text-3xl font-black text-slate-900 tracking-tight">฿0.00</h3>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-5 rounded-2xl text-center mb-6 border border-blue-100 relative overflow-hidden">
+                        <p class="text-xs font-bold text-primary mb-1 relative z-10">ยอดมัดจำที่ต้องชำระ (50%)</p>
+                        <h3 id="deposit-total" class="text-3xl md:text-4xl font-black text-primary tracking-tight relative z-10">฿0.00</h3>
+                    </div>
+
+                    <button id="checkout-btn" onclick="handleCheckout()" class="w-full bg-primary hover:bg-primaryHover text-white py-4 rounded-xl font-black text-lg transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                        ไปที่หน้าสรุปคำสั่งซื้อ <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </button>
+
+                    <p class="text-xs text-center text-slate-400 mt-4 flex items-center justify-center gap-1">
+                        <i data-lucide="info" class="w-3.5 h-3.5"></i> ตรวจสอบความถูกต้องก่อนกดทำรายการ
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    
+
+    <script type="text/javascript">
+        function setLangCookie(lang) {
+            document.cookie = "googtrans=/th/" + lang + "; path=/";
+            localStorage.setItem('my_site_lang', lang);
+        }
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'th', includedLanguages: 'th,en', autoDisplay: false }, 'google_translate_element');
+        }
+        function toggleLanguage() {
+            let currentLang = localStorage.getItem('my_site_lang') || 'th';
+            setLangCookie(currentLang === 'th' ? 'en' : 'th');
+            window.location.reload(); 
+        }
+    </script>
     
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="cart.js?v=6"></script>
     <script> lucide.createIcons(); </script>
-    <script src="i18n.js"></script>
     <script src="navbar.js"></script>
 </body>
 </html>

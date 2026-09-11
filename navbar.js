@@ -233,6 +233,65 @@
         }
     }
 
+    // =========================================================================
+    // 8. Global Toast Notification System (Fluid UX)
+    // =========================================================================
+    window.showToast = function(message, type = 'success', duration = 3500) {
+        let container = document.getElementById('toast-notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-notification-container';
+            container.className = 'fixed top-5 right-5 z-[99999] flex flex-col gap-2.5 pointer-events-none max-w-sm w-full px-4';
+            document.body.appendChild(container);
+        }
+
+        const icons = {
+            success: `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`,
+            error: `<svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`,
+            warning: `<svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
+            info: `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+        };
+
+        const toast = document.createElement('div');
+        toast.className = 'pointer-events-auto flex items-center gap-3 p-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-100/80 transform translate-y-[-10px] opacity-0 transition-all duration-300 ease-out font-prompt text-sm text-slate-800 font-semibold';
+        toast.innerHTML = `
+            <div class="shrink-0 p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">${icons[type] || icons.info}</div>
+            <div class="flex-1 text-xs md:text-sm leading-snug">${message}</div>
+            <button class="shrink-0 text-slate-400 hover:text-slate-600 transition p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+        });
+
+        const removeToast = () => {
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-[-10px]', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        };
+
+        toast.querySelector('button').onclick = removeToast;
+        setTimeout(removeToast, duration);
+    };
+
+    // Smart non-blocking alert override for fluid UX
+    const _nativeAlert = window.alert;
+    window.alert = function(msg) {
+        if (!msg) return;
+        const str = String(msg);
+        let type = 'info';
+        if (str.includes('✅') || str.includes('สำเร็จ') || /success/i.test(str)) type = 'success';
+        else if (str.includes('❌') || str.includes('ไม่สำเร็จ') || str.includes('ผิดพลาด') || /error/i.test(str)) type = 'error';
+        else if (str.includes('⚠️') || str.includes('กรุณา') || /warning/i.test(str)) type = 'warning';
+        
+        window.showToast(str, type, 4000);
+    };
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initMobileNavigation);
     } else {

@@ -5,14 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เข้าสู่ระบบ - 3D Tech</title>
     
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        primary: '#2563EB', 
+                        primaryHover: '#1D4ED8',
+                        secondary: '#0F172A',
+                        accent: '#06B6D4',
+                        bgLight: '#F8FAFC'
+                    },
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* จัดตำแหน่งตัวบอดี้ให้รองรับ Google Translate */
+        body { top: 0px !important; }
+
+        /* 🌐 สไตล์ปุ่มเปลี่ยนภาษา (White-Blue Minimalist) */
+        .lang-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .lang-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .lang-btn:hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+        }
+
+        .lang-btn i { transition: transform 0.8s ease; }
+        .lang-btn:hover i { transform: rotate(360deg); }
+
+        /* แสงเงาวิ่งพาดปุ่ม */
+        .lang-btn::after {
+            content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transform: skewX(-25deg); transition: 0.5s;
+        }
+        .lang-btn:hover::after { left: 200%; }
+
+        /* ซ่อน UI ของ Google Translate */
+        
+        
+        
+        
+
+        /* ปรับสี Logo Box ให้เป็นสีน้ำเงินหลัก */
+        .login-logo-box { background: #2563EB !important; color: white; }
+        .btn-login { background: #2563EB !important; }
+        .btn-login:hover { background: #1D4ED8 !important; }
+
+        /* 💡 สไตล์เพิ่มเติมสำหรับไอคอนตาเปิด/ปิดรหัสผ่าน */
+        .password-toggle-btn {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            color: #94A3B8; /* สีเทาอ่อน */
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .password-toggle-btn:hover { color: #475569; /* สีเทาเข้มขึ้นเมื่อ hover */ }
+        .password-toggle-btn:focus { outline: none; }
+        
+        /* ปรับช่อง input ให้มีพื้นที่ด้านขวาสำหรับไอคอน */
+        .login-form-input#password { padding-right: 40px !important; }
+    </style>
+    <script src="i18n.js"></script>
+</head>
+<body class="login-body font-prompt">
+
+    <div class="lang-container flex items-center gap-2">
+        <a href="index.html" class="p-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-full shadow-sm transition flex items-center justify-center" title="กลับหน้าแรก">
+            <i data-lucide="home" class="w-4 h-4"></i>
+        </a>
+        <button onclick="window.toggleLanguage()" class="lang-btn group" title="Change Language">
+            <i data-lucide="globe" class="w-4 h-4"></i>
+            <span id="lang-display">TH</span>
+        </button>
+        <button id="mobile-menu-btn" type="button" aria-label="เปิดเมนู" class="p-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-full shadow-sm transition flex items-center justify-center">
+            <i data-lucide="menu" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <main class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo-box">
+                    <i data-lucide="box" style="width: 28px; height: 28px;"></i>
+                </div>
+                <h1 class="font-bold">3D TECH</h1>
+                <p data-i18n="login_subtitle">ยินดีต้อนรับ</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="login-form-group">
+                    <label for="email" class="font-semibold" data-i18n="label_email">อีเมล</label>
+                    <input type="email" id="email" class="login-form-input" placeholder="admin@3dmodel.com" required>
+                </div>
+
+                <div class="login-form-group">
+                    <label for="password" class="font-semibold" data-i18n="label_password">รหัสผ่าน</label>
+                    <div class="relative w-full">
+                        <input type="password" id="password" class="login-form-input w-full" placeholder="••••••••" required>
+                        <button type="button" id="togglePassword" class="password-toggle-btn" title="เปิด/ปิดการมองเห็นรหัสผ่าน">
+                            <i data-lucide="eye-off" id="eyeIcon" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login login-btn font-bold" data-i18n="btn_login">เข้าสู่ระบบ</button>
+            </form>
+
+            <div class="login-register-link">
+                <span data-i18n="no_account">ยังไม่มีบัญชีใช่หรือไม่?</span> <a href="register.html" class="text-blue-600 font-bold hover:underline" data-i18n="link_register">สมัครสมาชิกที่นี่</a>
+            </div>
+        </div>
+
+        <footer class="login-footer">
+            &copy; 2026 3D Tech Store System
+        </footer>
+    </main>
+
     
+
 
     <script> lucide.createIcons(); </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="login.js"></script>
 
-    <script src="i18n.js"></script>
     <script src="navbar.js"></script>
 </body>
 </html>

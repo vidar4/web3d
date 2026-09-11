@@ -177,6 +177,8 @@ async function loadProducts(category = 'all', searchQuery = '') {
                 ? `<span class="text-[10px] text-slate-500 ml-1 font-bold">${avgRating} <span class="text-slate-400 font-normal">(${reviewCount} รีวิว)</span></span>` 
                 : `<span class="text-[9px] text-slate-400 ml-1">ยังไม่มีรีวิว</span>`;
 
+            const tagline = window.getModelTagline ? window.getModelTagline(item) : '⚡ งานพิมพ์ 3 มิติคุณภาพพรีเมียม';
+
             const card = document.createElement('div');
             card.className = 'group relative bg-white p-4 rounded-3xl border border-slate-200 hover:border-blue-300 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 cursor-pointer overflow-hidden';
             card.onclick = () => window.location.href = `product-detail.html?id=${item.model_id}`;
@@ -197,6 +199,9 @@ async function loadProducts(category = 'all', searchQuery = '') {
                     </div>
                     
                     <h3 class="font-bold text-lg leading-tight group-hover:text-primary transition line-clamp-2" style="color: #0F172A;">${item.model_name}</h3>
+                    <p class="text-xs text-slate-500 font-medium line-clamp-1 italic flex items-center gap-1.5 pt-0.5" title="${tagline}">
+                        <span class="truncate">${tagline}</span>
+                    </p>
                     
                     <div class="flex items-center justify-between gap-4 pt-2 border-t border-slate-100">
                         <div class="flex flex-col">
